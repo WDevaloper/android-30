@@ -925,6 +925,7 @@ public abstract class LayoutInflater {
      */
     protected View onCreateView(View parent, String name, AttributeSet attrs)
             throws ClassNotFoundException {
+        // PhoneLayoutInflater.onCreateView
         return onCreateView(name, attrs);
     }
 
@@ -999,6 +1000,7 @@ public abstract class LayoutInflater {
                 mConstructorArgs[0] = context;
                 try {
                     if (-1 == name.indexOf('.')) {
+                        //TODO 创建View
                         view = onCreateView(context, parent, name, attrs);
                     } else {
                         view = createView(context, name, null, attrs);

@@ -199,6 +199,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
     boolean mIsFloating;
     private boolean mIsTranslucent;
 
+    //PhoneLayoutInflater
     private LayoutInflater mLayoutInflater;
 
     private TextView mTitleView;

@@ -4714,6 +4714,7 @@ public final class ActivityThread extends ClientTransactionHandler {
 
                     // PhoneWindow 只是负责处理一些应用窗口通用的逻辑（设置标题栏，导航栏等）。
                     // 但是真正完成把一个View作为窗口添加到 WMS 的过程是由 WindowManager(WindowManagerImpl) 来完成的。
+                    //WindowManager 是WindowManagerService服务的代理对象
                     wm.addView(decor, l);
                 } else {
                     // The activity will get a callback for this {@link LayoutParams} change
