@@ -939,6 +939,11 @@ public final class ViewRootImpl implements ViewParent,
 
     /**
      * We have one child
+     *
+     * @param view            decordView
+     * @param attrs           window的布局参数
+     * @param panelParentView
+     * @param userId
      */
     public void setView(View view, WindowManager.LayoutParams attrs, View panelParentView,
                         int userId) {
@@ -947,6 +952,7 @@ public final class ViewRootImpl implements ViewParent,
                 mView = view;
 
                 mAttachInfo.mDisplayState = mDisplay.getState();
+                // 屏幕状态改变
                 mDisplayManager.registerDisplayListener(mDisplayListener, mHandler);
 
                 mViewLayoutDirectionInitial = mView.getRawLayoutDirection();
@@ -1038,7 +1044,7 @@ public final class ViewRootImpl implements ViewParent,
                 // any other events from the system.
 
                 //requestLayout 是刷新布局的操作，调用此方法后 ViewRootImpl 所关联的 View 也执行 measure - layout - draw 操作，
-                // 确保在 View 被添加到 Window 上显示到屏幕之前，已经完成测量和绘制操作。绘制流程是只是针对的View和window而言，只有将WIndow添加到WMS上才会显示到屏幕上
+                // 确保在 View 被添加到 Window 上显示到屏幕之前，已经完成测量和绘制操作。
                 requestLayout();//View的绘制流程
 
                 InputChannel inputChannel = null;
@@ -1055,7 +1061,7 @@ public final class ViewRootImpl implements ViewParent,
                     collectViewAttributes();
                     adjustLayoutParamsForCompatibility(mWindowAttributes);
 
-                    //调用 mWindowSession 的 addToDisplayAsUser 方法将 Window(View) 添加到 WMS 中。
+                    //todo 调用 mWindowSession 的 addToDisplayAsUser 方法将向系统申请。
                     //com.android.server.wm.Session
                     res = mWindowSession.addToDisplayAsUser(mWindow, mSeq, mWindowAttributes,
                             getHostVisibility(), mDisplay.getDisplayId(), userId, mTmpFrame,
@@ -1961,6 +1967,7 @@ public final class ViewRootImpl implements ViewParent,
         if (!mTraversalScheduled) {
             mTraversalScheduled = true;
             mTraversalBarrier = mHandler.getLooper().getQueue().postSyncBarrier();
+            // 注册回调到，然后调用scheduleFrameLocked启动16ms帧回到mTraversalRunnable
             mChoreographer.postCallback(
                     Choreographer.CALLBACK_TRAVERSAL, mTraversalRunnable, null);
             notifyRendererOfFramePending();

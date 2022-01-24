@@ -4599,6 +4599,8 @@ public final class ActivityThread extends ClientTransactionHandler {
                 deliverResults(r, r.pendingResults, reason);
                 r.pendingResults = null;
             }
+
+            //执行Activity.onResume方法
             r.activity.performResume(r.startsNotResumed, reason);
 
             r.state = null;
@@ -4641,6 +4643,7 @@ public final class ActivityThread extends ClientTransactionHandler {
         mSomeActivitiesChanged = true;
 
         // TODO Push resumeArgs into the activity for consideration
+        // 执行Activity的onStrat和onResume方法
         final ActivityClientRecord r = performResumeActivity(token, finalStateRequest, reason);
         if (r == null) {
             // We didn't actually resume the activity, so skipping any follow-up actions.
@@ -4665,6 +4668,7 @@ public final class ActivityThread extends ClientTransactionHandler {
                 ? WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION : 0;
 
 
+        //如果窗口还没有添加到窗口管理器中，并且这个人没有完成自己或开始另一个活动，那么继续添加窗口。
         // If the window hasn't yet been added to the window manager,
         // and this guy didn't finish itself or start another activity,
         // then go ahead and add the window.
@@ -4686,6 +4690,8 @@ public final class ActivityThread extends ClientTransactionHandler {
             // 隐藏DecorView
             decor.setVisibility(View.INVISIBLE);
             ViewManager wm = a.getWindowManager();
+
+            // 获取Window的布局参数 LayoutParams
             WindowManager.LayoutParams l = r.window.getAttributes();
             a.mDecor = decor;
             l.type = WindowManager.LayoutParams.TYPE_BASE_APPLICATION;

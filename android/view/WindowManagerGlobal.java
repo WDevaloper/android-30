@@ -44,14 +44,14 @@ import java.util.ArrayList;
 /**
  * Provides low-level communication with the system window manager for
  * operations that are not associated with any particular context.
- *
+ * <p>
  * This class is only used internally to implement global functions where
  * the caller already knows the display and relevant compatibility information
  * for the operation.  For most purposes, you should use {@link WindowManager} instead
  * since it is bound to a context.
  *
- * @see WindowManagerImpl
  * @hide
+ * @see WindowManagerImpl
  */
 public final class WindowManagerGlobal {
     private static final String TAG = "WindowManager";
@@ -276,7 +276,7 @@ public final class WindowManagerGlobal {
                     boolean isChild = false;
                     if (params.type >= WindowManager.LayoutParams.FIRST_SUB_WINDOW
                             && params.type <= WindowManager.LayoutParams.LAST_SUB_WINDOW) {
-                        for (int j = 0 ; j < numRoots; ++j) {
+                        for (int j = 0; j < numRoots; ++j) {
                             View viewj = mViews.get(j);
                             WindowManager.LayoutParams paramsj = mParams.get(j);
                             if (params.token == viewj.getWindowToken()
@@ -331,8 +331,15 @@ public final class WindowManagerGlobal {
         return null;
     }
 
+    /**
+     * @param view         decorView window的View
+     * @param params       在Activity.handleResumeActivity方法中(r.window.getAttributes())获得到的window的布局参数信息
+     * @param display
+     * @param parentWindow
+     * @param userId
+     */
     public void addView(View view, ViewGroup.LayoutParams params,
-            Display display, Window parentWindow, int userId) {
+                        Display display, Window parentWindow, int userId) {
         if (view == null) {
             throw new IllegalArgumentException("view must not be null");
         }
@@ -343,6 +350,7 @@ public final class WindowManagerGlobal {
             throw new IllegalArgumentException("Params must be WindowManager.LayoutParams");
         }
 
+
         final WindowManager.LayoutParams wparams = (WindowManager.LayoutParams) params;
         if (parentWindow != null) {
             parentWindow.adjustLayoutParamsForSubWindow(wparams);
@@ -352,7 +360,7 @@ public final class WindowManagerGlobal {
             final Context context = view.getContext();
             if (context != null
                     && (context.getApplicationInfo().flags
-                            & ApplicationInfo.FLAG_HARDWARE_ACCELERATED) != 0) {
+                    & ApplicationInfo.FLAG_HARDWARE_ACCELERATED) != 0) {
                 wparams.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
             }
         }
@@ -364,7 +372,8 @@ public final class WindowManagerGlobal {
             // Start watching for system property changes.
             if (mSystemPropertyUpdater == null) {
                 mSystemPropertyUpdater = new Runnable() {
-                    @Override public void run() {
+                    @Override
+                    public void run() {
                         synchronized (mLock) {
                             for (int i = mRoots.size() - 1; i >= 0; --i) {
                                 mRoots.get(i).loadSystemProperties();
@@ -375,6 +384,7 @@ public final class WindowManagerGlobal {
                 SystemProperties.addChangeCallback(mSystemPropertyUpdater);
             }
 
+            // View是否添加到WM中
             int index = findViewLocked(view, false);
             if (index >= 0) {
                 if (mDyingViews.contains(view)) {
@@ -399,8 +409,10 @@ public final class WindowManagerGlobal {
                 }
             }
 
+            // 创建ViewRootImpl
             root = new ViewRootImpl(view.getContext(), display);
 
+            // 将DecorView的布局参数设置为window的布局参数
             view.setLayoutParams(wparams);
 
             mViews.add(view);
@@ -429,7 +441,7 @@ public final class WindowManagerGlobal {
             throw new IllegalArgumentException("Params must be WindowManager.LayoutParams");
         }
 
-        final WindowManager.LayoutParams wparams = (WindowManager.LayoutParams)params;
+        final WindowManager.LayoutParams wparams = (WindowManager.LayoutParams) params;
 
         view.setLayoutParams(wparams);
 
@@ -465,8 +477,8 @@ public final class WindowManagerGlobal {
      * Remove all roots with specified token.
      *
      * @param token app or window token.
-     * @param who name of caller, used in logs.
-     * @param what type of caller, used in logs.
+     * @param who   name of caller, used in logs.
+     * @param what  type of caller, used in logs.
      */
     public void closeAll(IBinder token, String who, String what) {
         closeAllExceptView(token, null /* view */, who, what);
@@ -476,10 +488,10 @@ public final class WindowManagerGlobal {
      * Remove all roots with specified token, except maybe one view.
      *
      * @param token app or window token.
-     * @param view view that should be should be preserved along with it's root.
-     *             Pass null if everything should be removed.
-     * @param who name of caller, used in logs.
-     * @param what type of caller, used in logs.
+     * @param view  view that should be should be preserved along with it's root.
+     *              Pass null if everything should be removed.
+     * @param who   name of caller, used in logs.
+     * @param what  type of caller, used in logs.
      */
     public void closeAllExceptView(IBinder token, View view, String who, String what) {
         synchronized (mLock) {
@@ -492,7 +504,7 @@ public final class WindowManagerGlobal {
                     if (who != null) {
                         WindowLeaked leak = new WindowLeaked(
                                 what + " " + who + " has leaked window "
-                                + root.getView() + " that was originally added here");
+                                        + root.getView() + " that was originally added here");
                         leak.setStackTrace(root.getLocation().getStackTrace());
                         Log.e(TAG, "", leak);
                     }
@@ -703,14 +715,16 @@ public final class WindowManagerGlobal {
         synchronized (mLock) {
             int count = mViews.size();
             config = new Configuration(config);
-            for (int i=0; i < count; i++) {
+            for (int i = 0; i < count; i++) {
                 ViewRootImpl root = mRoots.get(i);
                 root.requestUpdateConfiguration(config);
             }
         }
     }
 
-    /** @hide */
+    /**
+     * @hide
+     */
     public void changeCanvasOpacity(IBinder token, boolean opaque) {
         if (token == null) {
             return;
