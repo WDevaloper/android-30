@@ -65,7 +65,9 @@ import java.util.WeakHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-/** @hide */
+/**
+ * @hide
+ */
 public class ResourcesManager {
     static final String TAG = "ResourcesManager";
     private static final boolean DEBUG = false;
@@ -151,6 +153,7 @@ public class ResourcesManager {
         @UnsupportedAppUsage
         private ActivityResources() {
         }
+
         public final Configuration overrideConfig = new Configuration();
         public final ArrayList<WeakReference<Resources>> activityResources = new ArrayList<>();
         final ReferenceQueue<Resources> activityResourcesQueue = new ReferenceQueue<>();
@@ -238,7 +241,8 @@ public class ResourcesManager {
      * Protected so that tests can override and returns something a fixed value.
      */
     @VisibleForTesting
-    protected @NonNull DisplayMetrics getDisplayMetrics(int displayId, DisplayAdjustments da) {
+    protected @NonNull
+    DisplayMetrics getDisplayMetrics(int displayId, DisplayAdjustments da) {
         DisplayMetrics dm = new DisplayMetrics();
         final Display display = getAdjustedDisplay(displayId, da);
         if (display != null) {
@@ -272,7 +276,7 @@ public class ResourcesManager {
     }
 
     public boolean applyCompatConfigurationLocked(int displayDensity,
-            @NonNull Configuration compatConfiguration) {
+                                                  @NonNull Configuration compatConfiguration) {
         if (mResCompatibilityInfo != null && !mResCompatibilityInfo.supportsScreen()) {
             mResCompatibilityInfo.applyToConfiguration(displayDensity, compatConfiguration);
             return true;
@@ -286,11 +290,11 @@ public class ResourcesManager {
      * metrics based on a set {@link DisplayAdjustments}. All other usages should instead call
      * {@link ResourcesManager#getAdjustedDisplay(int, Resources)}.
      *
-     * @param displayId display Id.
+     * @param displayId          display Id.
      * @param displayAdjustments display adjustments.
      */
     private Display getAdjustedDisplay(final int displayId,
-            @Nullable DisplayAdjustments displayAdjustments) {
+                                       @Nullable DisplayAdjustments displayAdjustments) {
         final DisplayAdjustments displayAdjustmentsCopy = (displayAdjustments != null)
                 ? new DisplayAdjustments(displayAdjustments) : new DisplayAdjustments();
         final Pair<Integer, DisplayAdjustments> key =
@@ -338,7 +342,8 @@ public class ResourcesManager {
         return "/data/resource-cache/" + path.substring(1).replace('/', '@') + "@idmap";
     }
 
-    private @NonNull ApkAssets loadApkAssets(String path, boolean sharedLib, boolean overlay)
+    private @NonNull
+    ApkAssets loadApkAssets(String path, boolean sharedLib, boolean overlay)
             throws IOException {
         final ApkKey newKey = new ApkKey(path, sharedLib, overlay);
         ApkAssets apkAssets = null;
@@ -382,15 +387,17 @@ public class ResourcesManager {
 
     /**
      * Creates an AssetManager from the paths within the ResourcesKey.
-     *
+     * <p>
      * This can be overridden in tests so as to avoid creating a real AssetManager with
      * real APK paths.
+     *
      * @param key The key containing the resource paths to add to the AssetManager.
      * @return a new AssetManager.
-    */
+     */
     @VisibleForTesting
     @UnsupportedAppUsage
-    protected @Nullable AssetManager createAssetManager(@NonNull final ResourcesKey key) {
+    protected @Nullable
+    AssetManager createAssetManager(@NonNull final ResourcesKey key) {
         final AssetManager.Builder builder = new AssetManager.Builder();
 
         // resDir can be null if the 'android' package is creating a new Resources object.
@@ -534,7 +541,8 @@ public class ResourcesManager {
         return config;
     }
 
-    private @Nullable ResourcesImpl createResourcesImpl(@NonNull ResourcesKey key) {
+    private @Nullable
+    ResourcesImpl createResourcesImpl(@NonNull ResourcesKey key) {
         final DisplayAdjustments daj = new DisplayAdjustments(key.mOverrideConfiguration);
         daj.setCompatibilityInfo(key.mCompatInfo);
 
@@ -559,7 +567,8 @@ public class ResourcesManager {
      * @param key The key to match.
      * @return a ResourcesImpl if the key matches a cache entry, null otherwise.
      */
-    private @Nullable ResourcesImpl findResourcesImplForKeyLocked(@NonNull ResourcesKey key) {
+    private @Nullable
+    ResourcesImpl findResourcesImplForKeyLocked(@NonNull ResourcesKey key) {
         WeakReference<ResourcesImpl> weakImplRef = mResourceImpls.get(key);
         ResourcesImpl impl = weakImplRef != null ? weakImplRef.get() : null;
         if (impl != null && impl.getAssets().isUpToDate()) {
@@ -571,13 +580,18 @@ public class ResourcesManager {
     /**
      * Finds a cached ResourcesImpl object that matches the given ResourcesKey, or
      * creates a new one and caches it for future use.
+     *
      * @param key The key to match.
      * @return a ResourcesImpl object matching the key.
      */
-    private @Nullable ResourcesImpl findOrCreateResourcesImplForKeyLocked(
+    private @Nullable
+    ResourcesImpl findOrCreateResourcesImplForKeyLocked(
             @NonNull ResourcesKey key) {
-        ResourcesImpl impl = findResourcesImplForKeyLocked(key);
+        ResourcesImpl impl =
+                findResourcesImplForKeyLocked(key);
+        // 没有找到
         if (impl == null) {
+            //创建Resources对象
             impl = createResourcesImpl(key);
             if (impl != null) {
                 mResourceImpls.put(key, new WeakReference<>(impl));
@@ -588,9 +602,11 @@ public class ResourcesManager {
 
     /**
      * Find the ResourcesKey that this ResourcesImpl object is associated with.
+     *
      * @return the ResourcesKey or null if none was found.
      */
-    private @Nullable ResourcesKey findKeyForResourceImplLocked(
+    private @Nullable
+    ResourcesKey findKeyForResourceImplLocked(
             @NonNull ResourcesImpl resourceImpl) {
         int refCount = mResourceImpls.size();
         for (int i = 0; i < refCount; i++) {
@@ -605,13 +621,14 @@ public class ResourcesManager {
 
     /**
      * Check if activity resources have same override config as the provided on.
-     * @param activityToken The Activity that resources should be associated with.
+     *
+     * @param activityToken  The Activity that resources should be associated with.
      * @param overrideConfig The override configuration to be checked for equality with.
      * @return true if activity resources override config matches the provided one or they are both
-     *         null, false otherwise.
+     * null, false otherwise.
      */
     boolean isSameResourcesOverrideConfig(@Nullable IBinder activityToken,
-            @Nullable Configuration overrideConfig) {
+                                          @Nullable Configuration overrideConfig) {
         synchronized (this) {
             final ActivityResources activityResources
                     = activityToken != null ? mActivityResourceReferences.get(activityToken) : null;
@@ -622,8 +639,8 @@ public class ResourcesManager {
                 // considered the same.
                 return Objects.equals(activityResources.overrideConfig, overrideConfig)
                         || (overrideConfig != null && activityResources.overrideConfig != null
-                                && 0 == overrideConfig.diffPublicOnly(
-                                        activityResources.overrideConfig));
+                        && 0 == overrideConfig.diffPublicOnly(
+                        activityResources.overrideConfig));
             }
         }
     }
@@ -640,7 +657,7 @@ public class ResourcesManager {
 
     @Nullable
     private Resources findResourcesForActivityLocked(@NonNull IBinder targetActivityToken,
-            @NonNull ResourcesKey targetKey, @NonNull ClassLoader targetClassLoader) {
+                                                     @NonNull ResourcesKey targetKey, @NonNull ClassLoader targetClassLoader) {
         ActivityResources activityResources = getOrCreateActivityResourcesStructLocked(
                 targetActivityToken);
 
@@ -661,9 +678,10 @@ public class ResourcesManager {
         return null;
     }
 
-    private @NonNull Resources createResourcesForActivityLocked(@NonNull IBinder activityToken,
-            @NonNull ClassLoader classLoader, @NonNull ResourcesImpl impl,
-            @NonNull CompatibilityInfo compatInfo) {
+    private @NonNull
+    Resources createResourcesForActivityLocked(@NonNull IBinder activityToken,
+                                               @NonNull ClassLoader classLoader, @NonNull ResourcesImpl impl,
+                                               @NonNull CompatibilityInfo compatInfo) {
         final ActivityResources activityResources = getOrCreateActivityResourcesStructLocked(
                 activityToken);
         cleanupReferences(activityResources.activityResources,
@@ -682,8 +700,9 @@ public class ResourcesManager {
         return resources;
     }
 
-    private @NonNull Resources createResourcesLocked(@NonNull ClassLoader classLoader,
-            @NonNull ResourcesImpl impl, @NonNull CompatibilityInfo compatInfo) {
+    private @NonNull
+    Resources createResourcesLocked(@NonNull ClassLoader classLoader,
+                                    @NonNull ResourcesImpl impl, @NonNull CompatibilityInfo compatInfo) {
         cleanupReferences(mResourceReferences, mResourcesReferencesQueue);
 
         Resources resources = compatInfo.needsCompatResources() ? new CompatResources(classLoader)
@@ -704,30 +723,31 @@ public class ResourcesManager {
      * CompatibilityInfo, ClassLoader, List)} with the same binder token will have their override
      * configurations merged with the one specified here.
      *
-     * @param token Represents an {@link Activity} or {@link WindowContext}.
-     * @param resDir The base resource path. Can be null (only framework resources will be loaded).
-     * @param splitResDirs An array of split resource paths. Can be null.
-     * @param overlayDirs An array of overlay paths. Can be null.
-     * @param libDirs An array of resource library paths. Can be null.
-     * @param displayId The ID of the display for which to create the resources.
+     * @param token          Represents an {@link Activity} or {@link WindowContext}.
+     * @param resDir         The base resource path. Can be null (only framework resources will be loaded).
+     * @param splitResDirs   An array of split resource paths. Can be null.
+     * @param overlayDirs    An array of overlay paths. Can be null.
+     * @param libDirs        An array of resource library paths. Can be null.
+     * @param displayId      The ID of the display for which to create the resources.
      * @param overrideConfig The configuration to apply on top of the base configuration. Can be
      *                       {@code null}. This provides the base override for this token.
-     * @param compatInfo The compatibility settings to use. Cannot be null. A default to use is
-     *                   {@link CompatibilityInfo#DEFAULT_COMPATIBILITY_INFO}.
-     * @param classLoader The class loader to use when inflating Resources. If null, the
-     *                    {@link ClassLoader#getSystemClassLoader()} is used.
+     * @param compatInfo     The compatibility settings to use. Cannot be null. A default to use is
+     *                       {@link CompatibilityInfo#DEFAULT_COMPATIBILITY_INFO}.
+     * @param classLoader    The class loader to use when inflating Resources. If null, the
+     *                       {@link ClassLoader#getSystemClassLoader()} is used.
      * @return a Resources object from which to access resources.
      */
-    public @Nullable Resources createBaseTokenResources(@NonNull IBinder token,
-            @Nullable String resDir,
-            @Nullable String[] splitResDirs,
-            @Nullable String[] overlayDirs,
-            @Nullable String[] libDirs,
-            int displayId,
-            @Nullable Configuration overrideConfig,
-            @NonNull CompatibilityInfo compatInfo,
-            @Nullable ClassLoader classLoader,
-            @Nullable List<ResourcesLoader> loaders) {
+    public @Nullable
+    Resources createBaseTokenResources(@NonNull IBinder token,
+                                       @Nullable String resDir,
+                                       @Nullable String[] splitResDirs,
+                                       @Nullable String[] overlayDirs,
+                                       @Nullable String[] libDirs,
+                                       int displayId,
+                                       @Nullable Configuration overrideConfig,
+                                       @NonNull CompatibilityInfo compatInfo,
+                                       @Nullable ClassLoader classLoader,
+                                       @Nullable List<ResourcesLoader> loaders) {
         try {
             Trace.traceBegin(Trace.TRACE_TAG_RESOURCES,
                     "ResourcesManager#createBaseActivityResources");
@@ -766,6 +786,7 @@ public class ResourcesManager {
                 }
             }
 
+            // 创建Resources对象
             // Now request an actual Resources object.
             return createResources(token, key, classLoader);
         } finally {
@@ -795,7 +816,7 @@ public class ResourcesManager {
      * Check WeakReferences and remove any dead references so they don't pile up.
      */
     private static <T> void cleanupReferences(ArrayList<WeakReference<T>> references,
-            ReferenceQueue<T> referenceQueue) {
+                                              ReferenceQueue<T> referenceQueue) {
         Reference<? extends T> enduedRef = referenceQueue.poll();
         if (enduedRef == null) {
             return;
@@ -814,15 +835,16 @@ public class ResourcesManager {
      * Creates a Resources object set with a ResourcesImpl object matching the given key.
      *
      * @param activityToken The Activity this Resources object should be associated with.
-     * @param key The key describing the parameters of the ResourcesImpl object.
-     * @param classLoader The classloader to use for the Resources object.
-     *                    If null, {@link ClassLoader#getSystemClassLoader()} is used.
+     * @param key           The key describing the parameters of the ResourcesImpl object.
+     * @param classLoader   The classloader to use for the Resources object.
+     *                      If null, {@link ClassLoader#getSystemClassLoader()} is used.
      * @return A Resources object that gets updated when
-     *         {@link #applyConfigurationToResourcesLocked(Configuration, CompatibilityInfo)}
-     *         is called.
+     * {@link #applyConfigurationToResourcesLocked(Configuration, CompatibilityInfo)}
+     * is called.
      */
-    private @Nullable Resources createResources(@Nullable IBinder activityToken,
-            @NonNull ResourcesKey key, @NonNull ClassLoader classLoader) {
+    private @Nullable
+    Resources createResources(@Nullable IBinder activityToken,
+                              @NonNull ResourcesKey key, @NonNull ClassLoader classLoader) {
         synchronized (this) {
             if (DEBUG) {
                 Throwable here = new Throwable();
@@ -830,6 +852,7 @@ public class ResourcesManager {
                 Slog.w(TAG, "!! Get resources for activity=" + activityToken + " key=" + key, here);
             }
 
+            //创建Resources对象
             ResourcesImpl resourcesImpl = findOrCreateResourcesImplForKeyLocked(key);
             if (resourcesImpl == null) {
                 return null;
@@ -856,22 +879,23 @@ public class ResourcesManager {
      * input parameters. Otherwise a new Resources object that satisfies these parameters is
      * returned.
      *
-     * @param activityToken Represents an Activity. If null, global resources are assumed.
-     * @param resDir The base resource path. Can be null (only framework resources will be loaded).
-     * @param splitResDirs An array of split resource paths. Can be null.
-     * @param overlayDirs An array of overlay paths. Can be null.
-     * @param libDirs An array of resource library paths. Can be null.
-     * @param displayId The ID of the display for which to create the resources.
+     * @param activityToken  Represents an Activity. If null, global resources are assumed.
+     * @param resDir         The base resource path. Can be null (only framework resources will be loaded).
+     * @param splitResDirs   An array of split resource paths. Can be null.
+     * @param overlayDirs    An array of overlay paths. Can be null.
+     * @param libDirs        An array of resource library paths. Can be null.
+     * @param displayId      The ID of the display for which to create the resources.
      * @param overrideConfig The configuration to apply on top of the base configuration. Can be
-     * null. Mostly used with Activities that are in multi-window which may override width and
-     * height properties from the base config.
-     * @param compatInfo The compatibility settings to use. Cannot be null. A default to use is
-     * {@link CompatibilityInfo#DEFAULT_COMPATIBILITY_INFO}.
-     * @param classLoader The class loader to use when inflating Resources. If null, the
-     * {@link ClassLoader#getSystemClassLoader()} is used.
+     *                       null. Mostly used with Activities that are in multi-window which may override width and
+     *                       height properties from the base config.
+     * @param compatInfo     The compatibility settings to use. Cannot be null. A default to use is
+     *                       {@link CompatibilityInfo#DEFAULT_COMPATIBILITY_INFO}.
+     * @param classLoader    The class loader to use when inflating Resources. If null, the
+     *                       {@link ClassLoader#getSystemClassLoader()} is used.
      * @return a Resources object from which to access resources.
      */
-    public @Nullable Resources getResources(
+    public @Nullable
+    Resources getResources(
             @Nullable IBinder activityToken,
             @Nullable String resDir,
             @Nullable String[] splitResDirs,
@@ -911,14 +935,14 @@ public class ResourcesManager {
      * String[], int, Configuration, CompatibilityInfo, ClassLoader, List)} is still valid and will
      * have the updated configuration.
      *
-     * @param activityToken The Activity token.
-     * @param overrideConfig The configuration override to update.
-     * @param displayId Id of the display where activity currently resides.
+     * @param activityToken           The Activity token.
+     * @param overrideConfig          The configuration override to update.
+     * @param displayId               Id of the display where activity currently resides.
      * @param movedToDifferentDisplay Indicates if the activity was moved to different display.
      */
     public void updateResourcesForActivity(@NonNull IBinder activityToken,
-            @Nullable Configuration overrideConfig, int displayId,
-            boolean movedToDifferentDisplay) {
+                                           @Nullable Configuration overrideConfig, int displayId,
+                                           boolean movedToDifferentDisplay) {
         try {
             Trace.traceBegin(Trace.TRACE_TAG_RESOURCES,
                     "ResourcesManager#updateResourcesForActivity");
@@ -947,10 +971,10 @@ public class ResourcesManager {
                     Throwable here = new Throwable();
                     here.fillInStackTrace();
                     Slog.d(TAG, "updating resources override for activity=" + activityToken
-                            + " from oldConfig="
-                            + Configuration.resourceQualifierString(oldConfig)
-                            + " to newConfig="
-                            + Configuration.resourceQualifierString(
+                                    + " from oldConfig="
+                                    + Configuration.resourceQualifierString(oldConfig)
+                                    + " to newConfig="
+                                    + Configuration.resourceQualifierString(
                             activityResources.overrideConfig) + " displayId=" + displayId,
                             here);
                 }
@@ -985,8 +1009,8 @@ public class ResourcesManager {
      */
     @Nullable
     private ResourcesKey rebaseActivityOverrideConfig(@NonNull Resources resources,
-            @NonNull Configuration oldOverrideConfig, @Nullable Configuration newOverrideConfig,
-            int displayId) {
+                                                      @NonNull Configuration oldOverrideConfig, @Nullable Configuration newOverrideConfig,
+                                                      int displayId) {
         // Extract the ResourcesKey that was last used to create the Resources for this
         // activity.
         final ResourcesKey oldKey = findKeyForResourceImplLocked(resources.getImpl());
@@ -1026,7 +1050,7 @@ public class ResourcesManager {
     }
 
     private void updateActivityResources(Resources resources, ResourcesKey newKey,
-            boolean hasLoader) {
+                                         boolean hasLoader) {
         final ResourcesImpl resourcesImpl;
 
         if (hasLoader) {
@@ -1045,8 +1069,8 @@ public class ResourcesManager {
 
     @TestApi
     public final boolean applyConfigurationToResources(@NonNull Configuration config,
-            @Nullable CompatibilityInfo compat) {
-        synchronized(this) {
+                                                       @Nullable CompatibilityInfo compat) {
+        synchronized (this) {
             return applyConfigurationToResourcesLocked(config, compat);
         }
     }
@@ -1101,8 +1125,8 @@ public class ResourcesManager {
     }
 
     private void applyConfigurationToResourcesLocked(@NonNull Configuration config,
-            @Nullable CompatibilityInfo compat, Configuration tmpConfig,
-            ResourcesKey key, ResourcesImpl resourcesImpl) {
+                                                     @Nullable CompatibilityInfo compat, Configuration tmpConfig,
+                                                     ResourcesKey key, ResourcesImpl resourcesImpl) {
         if (DEBUG || DEBUG_CONFIGURATION) {
             Slog.v(TAG, "Changing resources "
                     + resourcesImpl + " config to: " + config);
@@ -1148,17 +1172,19 @@ public class ResourcesManager {
     /**
      * Appends the library asset path to any ResourcesImpl object that contains the main
      * assetPath.
+     *
      * @param assetPath The main asset path for which to add the library asset path.
-     * @param libAsset The library asset path to add.
+     * @param libAsset  The library asset path to add.
      */
     @UnsupportedAppUsage
     public void appendLibAssetForMainAssetPath(String assetPath, String libAsset) {
-        appendLibAssetsForMainAssetPath(assetPath, new String[] { libAsset });
+        appendLibAssetsForMainAssetPath(assetPath, new String[]{libAsset});
     }
 
     /**
      * Appends the library asset paths to any ResourcesImpl object that contains the main
      * assetPath.
+     *
      * @param assetPath The main asset path for which to add the library asset path.
      * @param libAssets The library asset paths to add.
      */
@@ -1200,7 +1226,7 @@ public class ResourcesManager {
 
     // TODO(adamlesinski): Make this accept more than just overlay directories.
     final void applyNewResourceDirsLocked(@NonNull final ApplicationInfo appInfo,
-            @Nullable final String[] oldPaths) {
+                                          @Nullable final String[] oldPaths) {
         try {
             Trace.traceBegin(Trace.TRACE_TAG_RESOURCES,
                     "ResourcesManager#applyNewResourceDirsLocked");
@@ -1297,13 +1323,13 @@ public class ResourcesManager {
     /**
      * Overrides the display adjustments of all resources which are associated with the given token.
      *
-     * @param token The token that owns the resources.
+     * @param token    The token that owns the resources.
      * @param override The operation to override the existing display adjustments. If it is null,
      *                 the override adjustments will be cleared.
      * @return {@code true} if the override takes effect.
      */
     public boolean overrideTokenDisplayAdjustments(IBinder token,
-            @Nullable Consumer<DisplayAdjustments> override) {
+                                                   @Nullable Consumer<DisplayAdjustments> override) {
         boolean handled = false;
         synchronized (this) {
             final ActivityResources tokenResources = mActivityResourceReferences.get(token);
@@ -1331,7 +1357,7 @@ public class ResourcesManager {
          */
         @Override
         public void onLoadersChanged(@NonNull Resources resources,
-                @NonNull List<ResourcesLoader> newLoader) {
+                                     @NonNull List<ResourcesLoader> newLoader) {
             synchronized (ResourcesManager.this) {
                 final ResourcesKey oldKey = findKeyForResourceImplLocked(resources.getImpl());
                 if (oldKey == null) {

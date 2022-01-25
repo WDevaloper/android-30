@@ -4712,7 +4712,6 @@ public final class ActivityThread extends ClientTransactionHandler {
                 if (!a.mWindowAdded) {
                     a.mWindowAdded = true;
 
-                    // 调用WM的addView方法将decor添加到WMS中
 
                     // WindowManger 的 addView 结果有两个：
                     // DecorView 被渲染绘制到屏幕上显示；
@@ -4721,6 +4720,11 @@ public final class ActivityThread extends ClientTransactionHandler {
                     // PhoneWindow 只是负责处理一些应用窗口通用的逻辑（设置标题栏，导航栏等）。
                     // 但是真正完成把一个View作为窗口添加到 WMS 的过程是由 WindowManager(WindowManagerImpl) 来完成的。
                     //WindowManager 是WindowManagerService服务的代理对象
+
+
+
+                    // 将DecorView添加到Window上，紧接着进入绘制三大过程,实际上是调用WindowManagerImpl的addView方法，然后调用WindowManagerGlobal的addView方法。
+                    // 触发绘制流程的主要条件是：当DecorView被添加到Window中时。
                     wm.addView(decor, l);
                 } else {
                     // The activity will get a callback for this {@link LayoutParams} change

@@ -2215,6 +2215,9 @@ public final class ViewRootImpl implements ViewParent,
         mTypesHiddenByFlags &= ~typesToShow;
     }
 
+    /**
+     * 父容器尝试与子View协商 宽度
+     */
     private boolean measureHierarchy(final View host, final WindowManager.LayoutParams lp,
                                      final Resources res, final int desiredWindowWidth, final int desiredWindowHeight) {
         int childWidthMeasureSpec;
@@ -2226,13 +2229,16 @@ public final class ViewRootImpl implements ViewParent,
                         + "x" + desiredWindowHeight + "...");
 
         boolean goodMeasure = false;
+        // 只有 父容器宽=WRAP_CONTENT，需要进行预测量
         if (lp.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
             // On large screens, we don't want to allow dialogs to just
             // stretch to fill the entire width of the screen to display
             // one line of text.  First try doing the layout at a smaller
             // size to see if it will fit.
+            //在大屏幕上，我们不想让对话框仅仅拉伸以填充屏幕的整个宽度来显示一行文本。首先尝试以较小的尺寸进行布局，看看它是否适合。
             final DisplayMetrics packageMetrics = res.getDisplayMetrics();
             res.getValue(com.android.internal.R.dimen.config_prefDialogWidth, mTmpValue, true);
+            // 尝试值 ，可能是320
             int baseSize = 0;
             if (mTmpValue.type == TypedValue.TYPE_DIMENSION) {
                 baseSize = (int) mTmpValue.getDimension(packageMetrics);
@@ -2240,8 +2246,11 @@ public final class ViewRootImpl implements ViewParent,
             if (DEBUG_DIALOG) Log.v(mTag, "Window " + mView + ": baseSize=" + baseSize
                     + ", desiredWindowWidth=" + desiredWindowWidth);
             if (baseSize != 0 && desiredWindowWidth > baseSize) {
+
                 childWidthMeasureSpec = getRootMeasureSpec(baseSize, lp.width);
                 childHeightMeasureSpec = getRootMeasureSpec(desiredWindowHeight, lp.height);
+
+                // 执行一次DecorView.onMeasure
                 performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);
                 if (DEBUG_DIALOG) Log.v(mTag, "Window " + mView + ": measured ("
                         + host.getMeasuredWidth() + "," + host.getMeasuredHeight()
@@ -2255,7 +2264,10 @@ public final class ViewRootImpl implements ViewParent,
                     if (DEBUG_DIALOG) Log.v(mTag, "Window " + mView + ": next baseSize="
                             + baseSize);
                     childWidthMeasureSpec = getRootMeasureSpec(baseSize, lp.width);
+
+                    // 执行一次DecorView.onMeasure
                     performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);
+
                     if (DEBUG_DIALOG) Log.v(mTag, "Window " + mView + ": measured ("
                             + host.getMeasuredWidth() + "," + host.getMeasuredHeight() + ")");
                     if ((host.getMeasuredWidthAndState() & View.MEASURED_STATE_TOO_SMALL) == 0) {
@@ -2269,7 +2281,10 @@ public final class ViewRootImpl implements ViewParent,
         if (!goodMeasure) {
             childWidthMeasureSpec = getRootMeasureSpec(desiredWindowWidth, lp.width);
             childHeightMeasureSpec = getRootMeasureSpec(desiredWindowHeight, lp.height);
+
+            // 执行一次DecorView.onMeasure
             performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);
+
             if (mWidth != host.getMeasuredWidth() || mHeight != host.getMeasuredHeight()) {
                 windowSizeMayChange = true;
             }
@@ -2526,7 +2541,12 @@ public final class ViewRootImpl implements ViewParent,
                 }
             }
 
+
+
+            // 预测量  ，onMeasure最多执行3次
             // Ask host how big it wants to be
+            // host-->DecorView
+            //lp-->window layoutParam
             windowSizeMayChange |= measureHierarchy(host, lp, res,
                     desiredWindowWidth, desiredWindowHeight);
         }
@@ -2911,6 +2931,9 @@ public final class ViewRootImpl implements ViewParent,
                 if (focusChangedDueToTouchMode || mWidth != host.getMeasuredWidth()
                         || mHeight != host.getMeasuredHeight() || dispatchApplyInsets ||
                         updatedConfiguration) {
+
+
+                    // 因为顶层View，这里需要根据Window的宽高以及DecorView自身的LayoutParams计算MeasureSpec
                     int childWidthMeasureSpec = getRootMeasureSpec(mWidth, lp.width);
                     int childHeightMeasureSpec = getRootMeasureSpec(mHeight, lp.height);
 
@@ -2928,8 +2951,12 @@ public final class ViewRootImpl implements ViewParent,
                     // needs be
                     int width = host.getMeasuredWidth();
                     int height = host.getMeasuredHeight();
+
+                    //再次测量的标志
                     boolean measureAgain = false;
 
+                    // 如果你在布局设置了Weight那么需要多次测量
+                    //有权重，就会被测量两次，为了性能，想线性布局中使用Weight
                     if (lp.horizontalWeight > 0.0f) {
                         width += (int) ((mWidth - width) * lp.horizontalWeight);
                         childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(width,
