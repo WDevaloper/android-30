@@ -2835,12 +2835,14 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                         if (alreadyDispatchedToNewTouchTarget && target == newTouchTarget) {
                             handled = true;
                         } else {
+                            // 当子View在执行过程中，被父容器拦截了
                             final boolean cancelChild = resetCancelNextUpFlag(target.child)
                                     || intercepted;
                             if (dispatchTransformedTouchEvent(ev, cancelChild,
                                     target.child, target.pointerIdBits)) {
                                 handled = true;
                             }
+
                             if (cancelChild) {
                                 if (predecessor == null) {
                                     mFirstTouchTarget = next;
