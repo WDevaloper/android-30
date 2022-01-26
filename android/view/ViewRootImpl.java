@@ -1045,6 +1045,7 @@ public final class ViewRootImpl implements ViewParent,
 
                 //requestLayout 是刷新布局的操作，调用此方法后 ViewRootImpl 所关联的 View 也执行 measure - layout - draw 操作，
                 // 确保在 View 被添加到 Window 上显示到屏幕之前，已经完成测量和绘制操作。
+                //
                 requestLayout();//View的绘制流程
 
                 InputChannel inputChannel = null;
@@ -1061,7 +1062,7 @@ public final class ViewRootImpl implements ViewParent,
                     collectViewAttributes();
                     adjustLayoutParamsForCompatibility(mWindowAttributes);
 
-                    //todo 调用 mWindowSession 的 addToDisplayAsUser 方法将向系统申请。
+                    //todo 调用 mWindowSession 的 addToDisplayAsUser 方法将向系统申请绘图内存，而这内存是和App进程共享的。
                     //com.android.server.wm.Session
                     res = mWindowSession.addToDisplayAsUser(mWindow, mSeq, mWindowAttributes,
                             getHostVisibility(), mDisplay.getDisplayId(), userId, mTmpFrame,
@@ -1641,7 +1642,7 @@ public final class ViewRootImpl implements ViewParent,
     @Override
     public void requestLayout() {
         if (!mHandlingLayoutInLayoutRequest) {
-            checkThread();
+            checkThread();// 创建ViewRootImpl的线程
             mLayoutRequested = true;
             scheduleTraversals();
         }
@@ -2540,7 +2541,6 @@ public final class ViewRootImpl implements ViewParent,
                     }
                 }
             }
-
 
 
             // 预测量  ，onMeasure最多执行3次
