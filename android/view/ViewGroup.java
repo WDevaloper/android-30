@@ -2716,6 +2716,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             boolean alreadyDispatchedToNewTouchTarget = false;
 
 
+
+            // 多个手指点击屏幕，可能会存在多个DOWN事件
             //-------处理DOWN事件 Start-------------
             {
                 if (!canceled && !intercepted) {
