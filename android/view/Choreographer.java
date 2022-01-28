@@ -104,19 +104,19 @@ public final class Choreographer {
     // Thread local storage for the choreographer.
     private static final ThreadLocal<Choreographer> sThreadInstance =
             new ThreadLocal<Choreographer>() {
-        @Override
-        protected Choreographer initialValue() {
-            Looper looper = Looper.myLooper();
-            if (looper == null) {
-                throw new IllegalStateException("The current thread must have a looper!");
-            }
-            Choreographer choreographer = new Choreographer(looper, VSYNC_SOURCE_APP);
-            if (looper == Looper.getMainLooper()) {
-                mMainInstance = choreographer;
-            }
-            return choreographer;
-        }
-    };
+                @Override
+                protected Choreographer initialValue() {
+                    Looper looper = Looper.myLooper();
+                    if (looper == null) {
+                        throw new IllegalStateException("The current thread must have a looper!");
+                    }
+                    Choreographer choreographer = new Choreographer(looper, VSYNC_SOURCE_APP);
+                    if (looper == Looper.getMainLooper()) {
+                        mMainInstance = choreographer;
+                    }
+                    return choreographer;
+                }
+            };
 
     private static volatile Choreographer mMainInstance;
 
@@ -153,7 +153,9 @@ public final class Choreographer {
 
     // All frame callbacks posted by applications have this token.
     private static final Object FRAME_CALLBACK_TOKEN = new Object() {
-        public String toString() { return "FRAME_CALLBACK_TOKEN"; }
+        public String toString() {
+            return "FRAME_CALLBACK_TOKEN";
+        }
     };
 
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
@@ -186,7 +188,7 @@ public final class Choreographer {
      * Contains information about the current frame for jank-tracking,
      * mainly timings of key events along with a bit of metadata about
      * view tree state
-     *
+     * <p>
      * TODO: Is there a better home for this? Currently Choreographer
      * is the only one with CALLBACK_ANIMATION start time, hence why this
      * resides here.
@@ -197,6 +199,7 @@ public final class Choreographer {
 
     /**
      * Must be kept in sync with CALLBACK_* ints below, used to index into this array.
+     *
      * @hide
      */
     private static final String[] CALLBACK_TRACE_TITLES = {
@@ -205,12 +208,14 @@ public final class Choreographer {
 
     /**
      * Callback type: Input callback.  Runs first.
+     *
      * @hide
      */
     public static final int CALLBACK_INPUT = 0;
 
     /**
      * Callback type: Animation callback.  Runs before {@link #CALLBACK_INSETS_ANIMATION}.
+     *
      * @hide
      */
     @TestApi
@@ -228,6 +233,7 @@ public final class Choreographer {
      * before traversals.
      * <p>
      * Runs before traversals.
+     *
      * @hide
      */
     public static final int CALLBACK_INSETS_ANIMATION = 2;
@@ -235,6 +241,7 @@ public final class Choreographer {
     /**
      * Callback type: Traversal callback.  Handles layout and draw.  Runs
      * after all other asynchronous messages have been handled.
+     *
      * @hide
      */
     public static final int CALLBACK_TRAVERSAL = 3;
@@ -247,6 +254,7 @@ public final class Choreographer {
      * to be skipped.  The frame time reported during this callback provides a better
      * estimate of the start time of the frame in which animations (and other updates
      * to the view hierarchy state) actually took effect.
+     *
      * @hide
      */
     public static final int CALLBACK_COMMIT = 4;
@@ -261,7 +269,7 @@ public final class Choreographer {
                 : null;
         mLastFrameTimeNanos = Long.MIN_VALUE;
 
-        mFrameIntervalNanos = (long)(1000000000 / getRefreshRate());
+        mFrameIntervalNanos = (long) (1000000000 / getRefreshRate());
 
         mCallbackQueues = new CallbackQueue[CALLBACK_LAST + 1];
         for (int i = 0; i <= CALLBACK_LAST; i++) {
@@ -304,7 +312,9 @@ public final class Choreographer {
         return mMainInstance;
     }
 
-    /** Destroys the calling thread's choreographer
+    /**
+     * Destroys the calling thread's choreographer
+     *
      * @hide
      */
     public static void releaseInstance() {
@@ -395,11 +405,14 @@ public final class Choreographer {
 
     void dump(String prefix, PrintWriter writer) {
         String innerPrefix = prefix + "  ";
-        writer.print(prefix); writer.println("Choreographer:");
-        writer.print(innerPrefix); writer.print("mFrameScheduled=");
-                writer.println(mFrameScheduled);
-        writer.print(innerPrefix); writer.print("mLastFrameTime=");
-                writer.println(TimeUtils.formatUptime(mLastFrameTimeNanos / 1000000));
+        writer.print(prefix);
+        writer.println("Choreographer:");
+        writer.print(innerPrefix);
+        writer.print("mFrameScheduled=");
+        writer.println(mFrameScheduled);
+        writer.print(innerPrefix);
+        writer.print("mLastFrameTime=");
+        writer.println(TimeUtils.formatUptime(mLastFrameTimeNanos / 1000000));
     }
 
     /**
@@ -409,11 +422,10 @@ public final class Choreographer {
      * </p>
      *
      * @param callbackType The callback type.
-     * @param action The callback action to run during the next frame.
-     * @param token The callback token, or null if none.
-     *
-     * @see #removeCallbacks
+     * @param action       The callback action to run during the next frame.
+     * @param token        The callback token, or null if none.
      * @hide
+     * @see #removeCallbacks
      */
     @UnsupportedAppUsage
     @TestApi
@@ -428,17 +440,16 @@ public final class Choreographer {
      * </p>
      *
      * @param callbackType The callback type.
-     * @param action The callback action to run during the next frame after the specified delay.
-     * @param token The callback token, or null if none.
-     * @param delayMillis The delay time in milliseconds.
-     *
-     * @see #removeCallback
+     * @param action       The callback action to run during the next frame after the specified delay.
+     * @param token        The callback token, or null if none.
+     * @param delayMillis  The delay time in milliseconds.
      * @hide
+     * @see #removeCallback
      */
     @UnsupportedAppUsage
     @TestApi
     public void postCallbackDelayed(int callbackType,
-            Runnable action, Object token, long delayMillis) {
+                                    Runnable action, Object token, long delayMillis) {
         if (action == null) {
             throw new IllegalArgumentException("action must not be null");
         }
@@ -450,7 +461,7 @@ public final class Choreographer {
     }
 
     private void postCallbackDelayedInternal(int callbackType,
-            Object action, Object token, long delayMillis) {
+                                             Object action, Object token, long delayMillis) {
         if (DEBUG_FRAMES) {
             Log.d(TAG, "PostCallback: type=" + callbackType
                     + ", action=" + action + ", token=" + token
@@ -463,6 +474,7 @@ public final class Choreographer {
             mCallbackQueues[callbackType].addCallbackLocked(dueTime, action, token);
 
             if (dueTime <= now) {
+                //注册 vsync 信号
                 scheduleFrameLocked(now);
             } else {
                 Message msg = mHandler.obtainMessage(MSG_DO_SCHEDULE_CALLBACK, action);
@@ -477,14 +489,13 @@ public final class Choreographer {
      * Removes callbacks that have the specified action and token.
      *
      * @param callbackType The callback type.
-     * @param action The action property of the callbacks to remove, or null to remove
-     * callbacks with any action.
-     * @param token The token property of the callbacks to remove, or null to remove
-     * callbacks with any token.
-     *
+     * @param action       The action property of the callbacks to remove, or null to remove
+     *                     callbacks with any action.
+     * @param token        The token property of the callbacks to remove, or null to remove
+     *                     callbacks with any token.
+     * @hide
      * @see #postCallback
      * @see #postCallbackDelayed
-     * @hide
      */
     @UnsupportedAppUsage
     @TestApi
@@ -517,7 +528,6 @@ public final class Choreographer {
      * </p>
      *
      * @param callback The frame callback to run during the next frame.
-     *
      * @see #postFrameCallbackDelayed
      * @see #removeFrameCallback
      */
@@ -531,9 +541,8 @@ public final class Choreographer {
      * The callback runs once then is automatically removed.
      * </p>
      *
-     * @param callback The frame callback to run during the next frame.
+     * @param callback    The frame callback to run during the next frame.
      * @param delayMillis The delay time in milliseconds.
-     *
      * @see #postFrameCallback
      * @see #removeFrameCallback
      */
@@ -550,7 +559,6 @@ public final class Choreographer {
      * Removes a previously posted frame callback.
      *
      * @param callback The frame callback to remove.
-     *
      * @see #postFrameCallback
      * @see #postFrameCallbackDelayed
      */
@@ -583,7 +591,6 @@ public final class Choreographer {
      * </p>
      *
      * @return The frame start time, in the {@link SystemClock#uptimeMillis()} time base.
-     *
      * @throws IllegalStateException if no frame is in progress.
      * @hide
      */
@@ -596,7 +603,6 @@ public final class Choreographer {
      * Same as {@link #getFrameTime()} but with nanosecond precision.
      *
      * @return The frame start time, in the {@link System#nanoTime()} time base.
-     *
      * @throws IllegalStateException if no frame is in progress.
      * @hide
      */
@@ -614,6 +620,7 @@ public final class Choreographer {
     /**
      * Like {@link #getLastFrameTimeNanos}, but always returns the last frame time, not matter
      * whether callbacks are currently running.
+     *
      * @return The frame start time of the last frame, in the {@link System#nanoTime()} time base.
      * @hide
      */
@@ -635,6 +642,8 @@ public final class Choreographer {
                 // otherwise post a message to schedule the vsync from the UI thread
                 // as soon as possible.
                 if (isRunningOnLooperThreadLocked()) {
+                    //注册 vsync 信号
+
                     scheduleVsyncLocked();
                 } else {
                     Message msg = mHandler.obtainMessage(MSG_DO_SCHEDULE_VSYNC);
@@ -827,8 +836,16 @@ public final class Choreographer {
         }
     }
 
+    /**
+     * 向系统订阅一次 vsync 信号。Android 系统每过 16.6ms 会发送一个 vsync 信号。
+     * 但这个信号并不是所有 App 都能收到的，只有订阅的才能收到
+     *
+     * 每次订阅只能收到一次 vsync 信号，如果需要收到下次信号需要重新订阅
+     *
+     */
     @UnsupportedAppUsage
     private void scheduleVsyncLocked() {
+        //注册 vsync 信号
         mDisplayEventReceiver.scheduleVsync();
     }
 
@@ -882,8 +899,8 @@ public final class Choreographer {
          * </p>
          *
          * @param frameTimeNanos The time in nanoseconds when the frame started being rendered,
-         * in the {@link System#nanoTime()} timebase.  Divide this value by {@code 1000000}
-         * to convert it to the {@link SystemClock#uptimeMillis()} time base.
+         *                       in the {@link System#nanoTime()} timebase.  Divide this value by {@code 1000000}
+         *                       to convert it to the {@link SystemClock#uptimeMillis()} time base.
          */
         public void doFrame(long frameTimeNanos);
     }
@@ -967,9 +984,9 @@ public final class Choreographer {
         @UnsupportedAppUsage
         public void run(long frameTimeNanos) {
             if (token == FRAME_CALLBACK_TOKEN) {
-                ((FrameCallback)action).doFrame(frameTimeNanos);
+                ((FrameCallback) action).doFrame(frameTimeNanos);
             } else {
-                ((Runnable)action).run();
+                ((Runnable) action).run();
             }
         }
     }
@@ -1026,7 +1043,7 @@ public final class Choreographer {
 
         public void removeCallbacksLocked(Object action, Object token) {
             CallbackRecord predecessor = null;
-            for (CallbackRecord callback = mHead; callback != null;) {
+            for (CallbackRecord callback = mHead; callback != null; ) {
                 final CallbackRecord next = callback.next;
                 if ((action == null || callback.action == action)
                         && (token == null || callback.token == token)) {
