@@ -6961,6 +6961,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     }
 
     /**
+     * 根据自身的layoutParam 和 对child的约束 测量child
+     *
      * Ask one of the children of this view to measure itself, taking into
      * account both the MeasureSpec requirements for this view and its padding.
      * The heavy lifting is done in getChildMeasureSpec.
