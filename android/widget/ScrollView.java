@@ -1405,6 +1405,8 @@ public class ScrollView extends FrameLayout {
                         + widthUsed, lp.width);
         final int usedTotal = mPaddingTop + mPaddingBottom + lp.topMargin + lp.bottomMargin +
                 heightUsed;
+
+        // ScrollView 强行给child的 measureSpec 设置为 MeasureSpec.UNSPECIFIED
         final int childHeightMeasureSpec = MeasureSpec.makeSafeMeasureSpec(
                 Math.max(0, MeasureSpec.getSize(parentHeightMeasureSpec) - usedTotal),
                 MeasureSpec.UNSPECIFIED);

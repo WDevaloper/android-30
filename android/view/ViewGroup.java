@@ -206,6 +206,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     private Animation.AnimationListener mAnimationListener;
 
     // First touch target in the linked list of touch targets.
+    //TouchTarget的作用就是用来记录捕获了 DOWN 事件的 View。
+    // 可是为什么是链表类型的结构呢？因为 Android 设备是支持多指操作的，每一个手指的 DOWN 事件都可以当做一个 TouchTarget 保存起来。
     @UnsupportedAppUsage
     private TouchTarget mFirstTouchTarget;//记录子空间消费DOWN事件的View
 
@@ -2716,7 +2718,6 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             boolean alreadyDispatchedToNewTouchTarget = false;
 
 
-
             // 多个手指点击屏幕，可能会存在多个DOWN事件
             //-------处理DOWN事件 Start-------------
             {
@@ -2846,7 +2847,10 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                         if (alreadyDispatchedToNewTouchTarget && target == newTouchTarget) {
                             handled = true;
                         } else {
-                            // 当子View在执行过程中，被父容器拦截了
+                            // 当子View在执行处理move事件过程中，被父容器拦截了，
+                            // 通俗讲child捕获down事件之后正在处理事件，这时父控件通过onInterceptTouchEvent方法进行拦截
+                            // 也就是说，在child消费事件过程中，给父控件拦截处理事件的机会.
+                            // 反过来，当然child也是可以通过requestDisallowInterceptTouchEvent方法让父控件不要拦截事件
                             final boolean cancelChild = resetCancelNextUpFlag(target.child)
                                     || intercepted;
 
@@ -6962,7 +6966,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
     /**
      * 根据自身的layoutParam 和 对child的约束 测量child
-     *
+     * <p>
      * Ask one of the children of this view to measure itself, taking into
      * account both the MeasureSpec requirements for this view and its padding.
      * The heavy lifting is done in getChildMeasureSpec.
@@ -7031,33 +7035,41 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      *                       dimension
      * @return a MeasureSpec integer for the child
      */
-    public static int getChildMeasureSpec(int spec, int padding, int childDimension) {
+    // 根据父控件的的限制MeasureSpec 和 child的layoutparam 创建child的MeasureSpec
+    public static int getChildMeasureSpec(int spec,
+                                          int padding,
+                                          int childDimension//child的布局参数layout_width和layout_height
+    ) {
+        // 对child的约束
         int specMode = MeasureSpec.getMode(spec);
-        int specSize = MeasureSpec.getSize(spec);
 
-        int size = Math.max(0, specSize - padding);
+        // 首先计算得到父控件可用的大小（考虑padding和margin）
+        int specSize = MeasureSpec.getSize(spec);
+        int size = Math.max(0, specSize - padding);//考虑padding和margin
 
         int resultSize = 0;
         int resultMode = 0;
 
         switch (specMode) {
+            // 父控件给定的限制值是精确的
             // Parent has imposed an exact size on us
-            case MeasureSpec.EXACTLY:
+            case MeasureSpec.EXACTLY:// MATCH_PARENT 和具体的数值
                 if (childDimension >= 0) {
                     resultSize = childDimension;
                     resultMode = MeasureSpec.EXACTLY;
-                } else if (childDimension == LayoutParams.MATCH_PARENT) {
+                } else if (childDimension == LayoutParams.MATCH_PARENT) {// -1
                     // Child wants to be our size. So be it.
                     resultSize = size;
                     resultMode = MeasureSpec.EXACTLY;
-                } else if (childDimension == LayoutParams.WRAP_CONTENT) {
+                } else if (childDimension == LayoutParams.WRAP_CONTENT) {//-2、
+                    // 如果父控件给的是精确值，那么child可以随便大小，但是不能超过父控件的限制值
                     // Child wants to determine its own size. It can't be
                     // bigger than us.
                     resultSize = size;
                     resultMode = MeasureSpec.AT_MOST;
                 }
                 break;
-
+                //父控件给的限制值的 最大值，child不能超过此值，父控件也不确定值
             // Parent has imposed a maximum size on us
             case MeasureSpec.AT_MOST:
                 if (childDimension >= 0) {

@@ -1163,6 +1163,8 @@ public final class ViewRootImpl implements ViewParent,
                         mInputQueue = new InputQueue();
                         mInputQueueCallback.onInputQueueCreated(mInputQueue);
                     }
+
+                    // 事件 接受
                     mInputEventReceiver = new WindowInputEventReceiver(inputChannel,
                             Looper.myLooper());
                 }
@@ -1183,6 +1185,7 @@ public final class ViewRootImpl implements ViewParent,
                 // 设置输入时间管道
                 CharSequence counterSuffix = attrs.getTitle();
                 mSyntheticInputStage = new SyntheticInputStage();
+                // 事件处理
                 InputStage viewPostImeStage = new ViewPostImeInputStage(mSyntheticInputStage);
                 InputStage nativePostImeStage = new NativePostImeInputStage(viewPostImeStage,
                         "aq:native-post-ime:" + counterSuffix);
@@ -5897,6 +5900,7 @@ public final class ViewRootImpl implements ViewParent,
 
     /**
      * Delivers post-ime input events to the view hierarchy.
+     * 接受系统硬件输入事件
      */
     final class ViewPostImeInputStage extends InputStage {
         public ViewPostImeInputStage(InputStage next) {
@@ -5905,7 +5909,7 @@ public final class ViewRootImpl implements ViewParent,
 
         @Override
         protected int onProcess(QueuedInputEvent q) {
-            if (q.mEvent instanceof KeyEvent) {//键盘时间
+            if (q.mEvent instanceof KeyEvent) {//键盘事件
                 return processKeyEvent(q);
             } else {
                 final int source = q.mEvent.getSource();
@@ -8192,6 +8196,7 @@ public final class ViewRootImpl implements ViewParent,
 
             if (stage != null) {
                 handleWindowFocusChanged();
+                //ViewPostImeInputStage.deliver
                 stage.deliver(q);
             } else {
                 finishInputEvent(q);
