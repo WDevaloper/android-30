@@ -2657,6 +2657,13 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
         return transformedEvent;
     }
 
+    /**
+     * 步骤 1：判断当前 ViewGroup 是否需要拦截此 touch 事件，如果拦截则此次 touch 事件不再会传递给子 View（或者以 CANCEL 的方式通知子 View）。
+     * <p>
+     * 步骤 2：如果没有拦截，则将事件分发给子 View 继续处理，如果子 View 将此次事件捕获，则将 mFirstTouchTarget 赋值给捕获 touch 事件的 View。
+     * <p>
+     * 步骤 3：根据 mFirstTouchTarget 重新分发事件（move、up等）。
+     */
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         if (mInputEventConsistencyVerifier != null) {
@@ -2674,7 +2681,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             final int action = ev.getAction();
             final int actionMasked = action & MotionEvent.ACTION_MASK;
 
-            // Handle an initial down. 重置事件
+            // Handle an initial down. 重置ACTION_DOWN事件
+            // 多指还是单指，只会执行一次
             if (actionMasked == MotionEvent.ACTION_DOWN) {
                 // Throw away all previous state when starting a new touch gesture.
                 // The framework may have dropped the up or cancel event for the previous gesture
@@ -2732,9 +2740,11 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
                     // 处理DOWN事件，如果有子View消费事件，那么mFirstTouchTarget!=null
                     if (actionMasked == MotionEvent.ACTION_DOWN
-                            || (split && actionMasked == MotionEvent.ACTION_POINTER_DOWN)
-                            || actionMasked == MotionEvent.ACTION_HOVER_MOVE) {
+                            || (split && actionMasked == MotionEvent.ACTION_POINTER_DOWN)//针对除第一个指针以外进入屏幕的其他指针。此指针的指针数据位于 getActionIndex() 返回的索引处。
+                            || actionMasked == MotionEvent.ACTION_HOVER_MOVE) {//鼠标
+
                         final int actionIndex = ev.getActionIndex(); // always 0 for down
+                        // 手指Id   最多32根手指
                         final int idBitsToAssign = split ? 1 << ev.getPointerId(actionIndex)
                                 : TouchTarget.ALL_POINTER_IDS;
 
@@ -2744,33 +2754,38 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
                         final int childrenCount = mChildrenCount;
                         if (newTouchTarget == null && childrenCount != 0) {
-                            final float x =
-                                    isMouseEvent ? ev.getXCursorPosition() : ev.getX(actionIndex);
-                            final float y =
-                                    isMouseEvent ? ev.getYCursorPosition() : ev.getY(actionIndex);
+
+                            // 获取点击位置
+                            final float x = isMouseEvent ? ev.getXCursorPosition() : ev.getX(actionIndex);
+                            final float y = isMouseEvent ? ev.getYCursorPosition() : ev.getY(actionIndex);
                             // Find a child that can receive the event.
                             // Scan children from front to back.
+
+                            // 将child排序
                             final ArrayList<View> preorderedList = buildTouchDispatchChildList();
-                            final boolean customOrder = preorderedList == null
-                                    && isChildrenDrawingOrderEnabled();
+
+                            final boolean customOrder = preorderedList == null && isChildrenDrawingOrderEnabled();
+
                             final View[] children = mChildren;
+
+                            // 倒叙遍历
                             for (int i = childrenCount - 1; i >= 0; i--) {
                                 // 处理重叠View
-                                final int childIndex = getAndVerifyPreorderedIndex(
-                                        childrenCount, i, customOrder);
-                                final View child = getAndVerifyPreorderedView(
-                                        preorderedList, children, childIndex);
+                                final int childIndex = getAndVerifyPreorderedIndex(childrenCount, i, customOrder);
+                                final View child = getAndVerifyPreorderedView(preorderedList, children, childIndex);
 
 
-                                // 返回此视图是否可以接收指针事件。
-                                if (!child.canReceivePointerEvents()
-                                        || !isTransformedTouchPointInView(x, y, child, null)) {
+                                // 判断child是否可以接收事件。
+                                if (!child.canReceivePointerEvents()// child是否可见，并且正在执行动画
+                                        || !isTransformedTouchPointInView(x, y, child, null)// 点击事件是否在child上
+                                ) {
                                     continue;
                                 }
 
+                                // 单指操作返回null，多指操作返回不为null
                                 newTouchTarget = getTouchTarget(child);
 
-                                if (newTouchTarget != null) {
+                                if (newTouchTarget != null) {//多指操作
                                     // Child is already receiving touch within its bounds.
                                     // Give it the new pointer in addition to the ones it is handling.
                                     newTouchTarget.pointerIdBits |= idBitsToAssign;
@@ -2778,7 +2793,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                                 }
 
                                 resetCancelNextUpFlag(child);
-                                // 分发事件
+                                // 分发事件给child,即询问child能否处理事件
                                 if (dispatchTransformedTouchEvent(ev, false, child, idBitsToAssign)) {
                                     // Child wants to receive touch within its bounds.
                                     mLastTouchDownTime = ev.getDownTime();
@@ -2798,10 +2813,10 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
                                     //记录消费事件的View
                                     newTouchTarget = addTouchTarget(child, idBitsToAssign);
-
                                     // 避免造成重复事件
                                     alreadyDispatchedToNewTouchTarget = true;
 
+                                    // 找到消费事件的child，直接跳出循环
                                     break;
                                 }
 
@@ -2835,6 +2850,9 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                     // ---> View.dispatchTouchEvent
                     //        ---> OnTouchListener.onTouch
                     //        ---> View.onTouchEvent
+                    //              ---> onClick
+
+                    // 既然没有人消费事件，那么自己看看能不能消费
                     handled = dispatchTransformedTouchEvent(ev, canceled, null,
                             TouchTarget.ALL_POINTER_IDS);
                 } else {//子View消费当前事件或者当前ViewGroup
@@ -2851,12 +2869,10 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                             // 通俗讲child捕获down事件之后正在处理事件，这时父控件通过onInterceptTouchEvent方法进行拦截
                             // 也就是说，在child消费事件过程中，给父控件拦截处理事件的机会.
                             // 反过来，当然child也是可以通过requestDisallowInterceptTouchEvent方法让父控件不要拦截事件
-                            final boolean cancelChild = resetCancelNextUpFlag(target.child)
-                                    || intercepted;
+                            final boolean cancelChild = resetCancelNextUpFlag(target.child) || intercepted;
 
                             // 如果是 ACTION_MOVE事件，那么直捣黄龙找到 onTouchEvent
-                            if (dispatchTransformedTouchEvent(ev, cancelChild,
-                                    target.child, target.pointerIdBits)) {
+                            if (dispatchTransformedTouchEvent(ev, cancelChild, target.child, target.pointerIdBits)) {
                                 handled = true;
                             }
 
@@ -2948,6 +2964,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     private void resetTouchState() {
         clearTouchTargets();
         resetCancelNextUpFlag(this);
+        // 重置不允许父控件拦截事件的标志
         mGroupFlags &= ~FLAG_DISALLOW_INTERCEPT;
         mNestedScrollAxes = SCROLL_AXIS_NONE;
     }
@@ -2995,8 +3012,10 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
             for (TouchTarget target = mFirstTouchTarget; target != null; target = target.next) {
                 resetCancelNextUpFlag(target.child);
+                // 取消之前的事件
                 dispatchTransformedTouchEvent(event, true, target.child, target.pointerIdBits);
             }
+            // 清除TouchTarget
             clearTouchTargets();
 
             if (syntheticEvent) {
@@ -3206,6 +3225,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 transformedEvent.transform(child.getInverseMatrix());
             }
 
+            // 若child是容器控件，便执行ViewGroup.dispatchTouchEvent再次将事件往下分发
+            // 若child是视图控件，便执行View.dispatchTouchEvent对事件进行处理消费
             handled = child.dispatchTouchEvent(transformedEvent);
         }
 
@@ -7069,7 +7090,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                     resultMode = MeasureSpec.AT_MOST;
                 }
                 break;
-                //父控件给的限制值的 最大值，child不能超过此值，父控件也不确定值
+            //父控件给的限制值的 最大值，child不能超过此值，父控件也不确定值
             // Parent has imposed a maximum size on us
             case MeasureSpec.AT_MOST:
                 if (childDimension >= 0) {
@@ -8885,7 +8906,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     private static final class TouchTarget {
         private static final int MAX_RECYCLED = 32;
         private static final Object sRecycleLock = new Object[0];
-        private static TouchTarget sRecycleBin;
+        private static TouchTarget sRecycleBin;// 回收池
         private static int sRecycledCount;
 
         public static final int ALL_POINTER_IDS = -1; // all ones
