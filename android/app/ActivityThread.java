@@ -4722,7 +4722,6 @@ public final class ActivityThread extends ClientTransactionHandler {
                     //WindowManager 是WindowManagerService服务的代理对象
 
 
-
                     // 将DecorView添加到Window上，紧接着进入绘制三大过程,实际上是调用WindowManagerImpl的addView方法，然后调用WindowManagerGlobal的addView方法。
                     // 触发绘制流程的主要条件是：当DecorView被添加到Window中时。
                     wm.addView(decor, l);
@@ -7809,6 +7808,11 @@ public final class ActivityThread extends ClientTransactionHandler {
         }
     }
 
+    /**
+     * zygote fork出进程之后，通过反射调用ActivityThread的main方法，这是应用程序入口
+     *
+     * @param args
+     */
     public static void main(String[] args) {
         Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "ActivityThreadMain");
 
