@@ -140,7 +140,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     static final boolean DEBUG = false;
 
-    private static final int[]  NESTED_SCROLLING_ATTRS = { android.R.attr.nestedScrollingEnabled };
+    private static final int[] NESTED_SCROLLING_ATTRS = {android.R.attr.nestedScrollingEnabled};
 
     private static final int[] CLIP_TO_PADDING_ATTR = {android.R.attr.clipToPadding};
 
@@ -263,10 +263,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * - There might be a problem in Recycling (e.g. custom Animations that set transient state and
      * prevent recycling or ItemAnimator not implementing the contract properly. ({@link
      * > Adapter#onFailedToRecycleView(ViewHolder)})
-     *
+     * <p>
      * - There might be too many item view types.
      * > Try merging them
-     *
+     * <p>
      * - There might be too many itemChange animations and not enough space in RecyclerPool.
      * >Try increasing your pool size and item cache size.
      */
@@ -331,7 +331,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     private final Rect mTempRect2 = new Rect();
     final RectF mTempRectF = new RectF();
     Adapter mAdapter;
-    @VisibleForTesting LayoutManager mLayout;
+    @VisibleForTesting
+    LayoutManager mLayout;
     RecyclerListener mRecyclerListener;
     final ArrayList<ItemDecoration> mItemDecorations = new ArrayList<>();
     private final ArrayList<OnItemTouchListener> mOnItemTouchListeners =
@@ -339,7 +340,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     private OnItemTouchListener mActiveOnItemTouchListener;
     boolean mIsAttached;
     boolean mHasFixedSize;
-    @VisibleForTesting boolean mFirstLayoutComplete;
+    @VisibleForTesting
+    boolean mFirstLayoutComplete;
 
     // Counting lock to control whether we should ignore requestLayout calls from children or not.
     private int mEatRequestLayout = 0;
@@ -358,10 +360,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     /**
      * Set to true when an adapter data set changed notification is received.
      * In that case, we cannot run any animations since we don't know what happened until layout.
-     *
+     * <p>
      * Attached items are invalid until next layout, at which point layout will animate/replace
      * items as necessary, building up content from the (effectively) new adapter from scratch.
-     *
+     * <p>
      * Cached items must be discarded when setting this to true, so that the cache may be freely
      * used by prefetching until the next layout occurs.
      *
@@ -396,12 +398,14 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     /**
      * The RecyclerView is not currently scrolling.
+     *
      * @see #getScrollState()
      */
     public static final int SCROLL_STATE_IDLE = 0;
 
     /**
      * The RecyclerView is currently being dragged by outside input such as user touch input.
+     *
      * @see #getScrollState()
      */
     public static final int SCROLL_STATE_DRAGGING = 1;
@@ -409,6 +413,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     /**
      * The RecyclerView is currently animating to a final position while not under
      * outside control.
+     *
      * @see #getScrollState()
      */
     public static final int SCROLL_STATE_SETTLING = 2;
@@ -491,38 +496,40 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      */
     private final ViewInfoStore.ProcessCallback mViewInfoProcessCallback =
             new ViewInfoStore.ProcessCallback() {
-        @Override
-        public void processDisappeared(ViewHolder viewHolder, @NonNull ItemHolderInfo info,
-                @Nullable ItemHolderInfo postInfo) {
-            mRecycler.unscrapView(viewHolder);
-            animateDisappearance(viewHolder, info, postInfo);
-        }
-        @Override
-        public void processAppeared(ViewHolder viewHolder,
-                ItemHolderInfo preInfo, ItemHolderInfo info) {
-            animateAppearance(viewHolder, preInfo, info);
-        }
-
-        @Override
-        public void processPersistent(ViewHolder viewHolder,
-                @NonNull ItemHolderInfo preInfo, @NonNull ItemHolderInfo postInfo) {
-            viewHolder.setIsRecyclable(false);
-            if (mDataSetHasChangedAfterLayout) {
-                // since it was rebound, use change instead as we'll be mapping them from
-                // stable ids. If stable ids were false, we would not be running any
-                // animations
-                if (mItemAnimator.animateChange(viewHolder, viewHolder, preInfo, postInfo)) {
-                    postAnimationRunner();
+                @Override
+                public void processDisappeared(ViewHolder viewHolder, @NonNull ItemHolderInfo info,
+                                               @Nullable ItemHolderInfo postInfo) {
+                    mRecycler.unscrapView(viewHolder);
+                    animateDisappearance(viewHolder, info, postInfo);
                 }
-            } else if (mItemAnimator.animatePersistence(viewHolder, preInfo, postInfo)) {
-                postAnimationRunner();
-            }
-        }
-        @Override
-        public void unused(ViewHolder viewHolder) {
-            mLayout.removeAndRecycleView(viewHolder.itemView, mRecycler);
-        }
-    };
+
+                @Override
+                public void processAppeared(ViewHolder viewHolder,
+                                            ItemHolderInfo preInfo, ItemHolderInfo info) {
+                    animateAppearance(viewHolder, preInfo, info);
+                }
+
+                @Override
+                public void processPersistent(ViewHolder viewHolder,
+                                              @NonNull ItemHolderInfo preInfo, @NonNull ItemHolderInfo postInfo) {
+                    viewHolder.setIsRecyclable(false);
+                    if (mDataSetHasChangedAfterLayout) {
+                        // since it was rebound, use change instead as we'll be mapping them from
+                        // stable ids. If stable ids were false, we would not be running any
+                        // animations
+                        if (mItemAnimator.animateChange(viewHolder, viewHolder, preInfo, postInfo)) {
+                            postAnimationRunner();
+                        }
+                    } else if (mItemAnimator.animatePersistence(viewHolder, preInfo, postInfo)) {
+                        postAnimationRunner();
+                    }
+                }
+
+                @Override
+                public void unused(ViewHolder viewHolder) {
+                    mLayout.removeAndRecycleView(viewHolder.itemView, mRecycler);
+                }
+            };
 
     public RecyclerView(Context context) {
         this(context, null);
@@ -593,6 +600,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     /**
      * Returns the accessibility delegate compatibility implementation used by the RecyclerView.
+     *
      * @return An instance of AccessibilityDelegateCompat used by RecyclerView
      */
     public RecyclerViewAccessibilityDelegate getCompatAccessibilityDelegate() {
@@ -601,6 +609,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     /**
      * Sets the accessibility delegate compatibility implementation used by RecyclerView.
+     *
      * @param accessibilityDelegate The accessibility delegate to be used by RecyclerView.
      */
     public void setAccessibilityDelegateCompat(
@@ -613,7 +622,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * Instantiate and set a LayoutManager, if specified in the attributes.
      */
     private void createLayoutManager(Context context, String className, AttributeSet attrs,
-            int defStyleAttr, int defStyleRes) {
+                                     int defStyleAttr, int defStyleRes) {
         if (className != null) {
             className = className.trim();
             if (className.length() != 0) {  // Can't use isEmpty since it was added in API 9.
@@ -723,7 +732,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
             @Override
             public void attachViewToParent(View child, int index,
-                    ViewGroup.LayoutParams layoutParams) {
+                                           ViewGroup.LayoutParams layoutParams) {
                 final ViewHolder vh = getChildViewHolderInt(child);
                 if (vh != null) {
                     if (!vh.isTmpDetached() && !vh.shouldIgnore()) {
@@ -900,8 +909,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * RecyclerView. This clipping behavior is only enabled if padding is non-zero.
      *
      * @return true if this RecyclerView clips children to its padding and resizes (but doesn't
-     *         clip) any EdgeEffect to the padded region, false otherwise.
-     *
+     * clip) any EdgeEffect to the padded region, false otherwise.
      * @attr name android:clipToPadding
      */
     @Override
@@ -911,7 +919,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     /**
      * Configure the scrolling touch slop for a specific use case.
-     *
+     * <p>
      * Set up the RecyclerView's scrolling motion threshold based on common usages.
      * Valid arguments are {@link #TOUCH_SLOP_DEFAULT} and {@link #TOUCH_SLOP_PAGING}.
      *
@@ -942,7 +950,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * <p>
      * Note that it still calls onAdapterChanged callbacks.
      *
-     * @param adapter The new adapter to set, or null to set no adapter.
+     * @param adapter                       The new adapter to set, or null to set no adapter.
      * @param removeAndRecycleExistingViews If set to true, RecyclerView will recycle all existing
      *                                      Views. If adapters have stable ids and/or you want to
      *                                      animate the disappearing views, you may prefer to set
@@ -956,6 +964,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         setDataSetChangedAfterLayout();
         requestLayout();
     }
+
     /**
      * Set a new adapter to provide child views on demand.
      * <p>
@@ -994,7 +1003,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     /**
      * Replaces the current adapter with the new one and triggers listeners.
-     * @param adapter The new adapter
+     *
+     * @param adapter                The new adapter
      * @param compatibleWithPrevious If true, the new adapter is using the same View Holders and
      *                               item types with the current adapter (helps us avoid cache
      *                               invalidation).
@@ -1002,7 +1012,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      *                               compatibleWithPrevious is false, this parameter is ignored.
      */
     private void setAdapterInternal(Adapter adapter, boolean compatibleWithPrevious,
-            boolean removeAndRecycleViews) {
+                                    boolean removeAndRecycleViews) {
         if (mAdapter != null) {
             mAdapter.unregisterAdapterDataObserver(mObserver);
             mAdapter.onDetachedFromRecyclerView(this);
@@ -1055,7 +1065,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * this method returns -1.</p>
      *
      * @return the offset of the baseline within the RecyclerView's bounds or -1
-     *         if baseline alignment is not supported
+     * if baseline alignment is not supported
      */
     @Override
     public int getBaseline() {
@@ -1163,7 +1173,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * Set a {@link OnFlingListener} for this {@link RecyclerView}.
      * <p>
      * If the {@link OnFlingListener} is set then it will receive
-     * calls to {@link #fling(int,int)} and will be able to intercept them.
+     * calls to {@link #fling(int, int)} and will be able to intercept them.
      *
      * @param onFlingListener The {@link OnFlingListener} instance.
      */
@@ -1231,6 +1241,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * purely for the purpose of being animated out of view. They are drawn as a regular
      * part of the child list of the RecyclerView, but they are invisible to the LayoutManager
      * as they are managed separately from the regular child views.
+     *
      * @param viewHolder The ViewHolder to be removed
      */
     private void addAnimatingView(ViewHolder viewHolder) {
@@ -1249,9 +1260,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     /**
      * Removes a view from the animatingViews list.
+     *
      * @param view The view to be removed
-     * @see #addAnimatingView(RecyclerView.ViewHolder)
      * @return true if an animating view is removed
+     * @see #addAnimatingView(RecyclerView.ViewHolder)
      */
     boolean removeAnimatingView(View view) {
         eatRequestLayout();
@@ -1307,7 +1319,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * Sets a new {@link ViewCacheExtension} to be used by the Recycler.
      *
      * @param extension ViewCacheExtension to be used or null if you want to clear the existing one.
-     *
      * @see {@link ViewCacheExtension#getViewForPositionAndType(Recycler, int, int)}
      */
     public void setViewCacheExtension(ViewCacheExtension extension) {
@@ -1447,9 +1458,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * Set a listener that will be notified of any changes in scroll state or position.
      *
      * @param listener Listener to set or null to clear
-     *
      * @deprecated Use {@link #addOnScrollListener(OnScrollListener)} and
-     *             {@link #removeOnScrollListener(OnScrollListener)}
+     * {@link #removeOnScrollListener(OnScrollListener)}
      */
     @Deprecated
     public void setOnScrollListener(OnScrollListener listener) {
@@ -1494,9 +1504,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     /**
      * Convenience method to scroll to a certain position.
-     *
+     * <p>
      * RecyclerView does not implement scrolling logic, rather forwards the call to
      * {@link com.android.internal.widget.RecyclerView.LayoutManager#scrollToPosition(int)}
+     *
      * @param position Scroll to this adapter position
      * @see com.android.internal.widget.RecyclerView.LayoutManager#scrollToPosition(int)
      */
@@ -1640,10 +1651,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * <p>
      * It also reports any unused scroll request to the related EdgeEffect.
      *
-     * @param x The amount of horizontal scroll request
-     * @param y The amount of vertical scroll request
+     * @param x  The amount of horizontal scroll request
+     * @param y  The amount of vertical scroll request
      * @param ev The originating MotionEvent, or null if not from a touch event.
-     *
      * @return Whether any scroll was consumed in either direction.
      */
     boolean scrollByInternal(int x, int y, MotionEvent ev) {
@@ -1656,10 +1666,12 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
             onEnterLayoutOrScroll();
             Trace.beginSection(TRACE_SCROLL_TAG);
             if (x != 0) {
+                // 调用LayoutManager的scrollHorizontallyBy
                 consumedX = mLayout.scrollHorizontallyBy(x, mRecycler, mState);
                 unconsumedX = x - consumedX;
             }
             if (y != 0) {
+                // 调用LayoutManager的scrollVerticallyBy
                 consumedY = mLayout.scrollVerticallyBy(y, mRecycler, mState);
                 unconsumedY = y - consumedY;
             }
@@ -1672,6 +1684,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
             invalidate();
         }
 
+        // 在问一次父控件
         if (dispatchNestedScroll(consumedX, consumedY, unconsumedX, unconsumedY, mScrollOffset)) {
             // Update the last touch co-ords, taking any scroll offset into account
             mLastTouchX -= mScrollOffset[0];
@@ -1894,7 +1907,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * <p>
      * <code>setLayoutFrozen(true)</code> does not prevent app from directly calling {@link
      * LayoutManager#scrollToPosition(int)}, {@link LayoutManager#smoothScrollToPosition(
-     * RecyclerView, State, int)}.
+     *RecyclerView, State, int)}.
      * <p>
      * {@link #setAdapter(Adapter)} and {@link #swapAdapter(Adapter, boolean)} will automatically
      * stop frozen.
@@ -1902,7 +1915,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * Note: Running ItemAnimator is not stopped automatically,  it's caller's
      * responsibility to call ItemAnimator.end().
      *
-     * @param frozen   true to freeze layout and scroll, false to re-enable.
+     * @param frozen true to freeze layout and scroll, false to re-enable.
      */
     public void setLayoutFrozen(boolean frozen) {
         if (frozen != mLayoutFrozen) {
@@ -1948,8 +1961,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     /**
      * Animate a scroll by the given amount of pixels along either axis.
      *
-     * @param dx Pixels to scroll horizontally
-     * @param dy Pixels to scroll vertically
+     * @param dx           Pixels to scroll horizontally
+     * @param dy           Pixels to scroll vertically
      * @param interpolator {@link Interpolator} to be used for scrolling. If it is
      *                     {@code null}, RecyclerView is going to use the default interpolator.
      */
@@ -1982,7 +1995,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * @param velocityY Initial vertical velocity in pixels per second
      * @return true if the fling was started, false if the velocity was too low to fling or
      * LayoutManager does not support scrolling in the axis fling is issued.
-     *
      * @see LayoutManager#canScrollVertically()
      * @see LayoutManager#canScrollHorizontally()
      */
@@ -2087,7 +2099,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         boolean invalidate = false;
         if (overscrollX < 0) {
             ensureLeftGlow();
-            mLeftGlow.onPull(-overscrollX / getWidth(), 1f - y  / getHeight());
+            mLeftGlow.onPull(-overscrollX / getWidth(), 1f - y / getHeight());
             invalidate = true;
         } else if (overscrollX > 0) {
             ensureRightGlow();
@@ -2258,11 +2270,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * better candidates to the focus search while still allowing the view system to take focus from
      * the RecyclerView and give it to a more suitable child if such child exists.
      *
-     * @param focused The view that currently has focus
+     * @param focused   The view that currently has focus
      * @param direction One of {@link View#FOCUS_UP}, {@link View#FOCUS_DOWN},
-     * {@link View#FOCUS_LEFT}, {@link View#FOCUS_RIGHT}, {@link View#FOCUS_FORWARD},
-     * {@link View#FOCUS_BACKWARD} or 0 for not applicable.
-     *
+     *                  {@link View#FOCUS_LEFT}, {@link View#FOCUS_RIGHT}, {@link View#FOCUS_FORWARD},
+     *                  {@link View#FOCUS_BACKWARD} or 0 for not applicable.
      * @return A new View that can be the next focus after the focused View
      */
     @Override
@@ -2543,9 +2554,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         }
         if (mDispatchScrollCounter > 0) {
             Log.w(TAG, "Cannot call this method in a scroll callback. Scroll callbacks might be run"
-                    + " during a measure & layout pass where you cannot change the RecyclerView"
-                    + " data. Any method call that might change the structure of the RecyclerView"
-                    + " or the adapter contents should be postponed to the next frame.",
+                            + " during a measure & layout pass where you cannot change the RecyclerView"
+                            + " data. Any method call that might change the structure of the RecyclerView"
+                            + " or the adapter contents should be postponed to the next frame.",
                     new IllegalStateException(""));
         }
     }
@@ -2678,7 +2689,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                 if (canScrollVertically) {
                     nestedScrollAxis |= View.SCROLL_AXIS_VERTICAL;
                 }
-                startNestedScroll(nestedScrollAxis);
+                startNestedScroll(nestedScrollAxis);//TODO 1
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
@@ -2713,16 +2724,19 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                         setScrollState(SCROLL_STATE_DRAGGING);
                     }
                 }
-            } break;
+            }
+            break;
 
             case MotionEvent.ACTION_POINTER_UP: {
                 onPointerUp(e);
-            } break;
+            }
+            break;
 
             case MotionEvent.ACTION_UP: {
                 mVelocityTracker.clear();
                 stopNestedScroll();
-            } break;
+            }
+            break;
 
             case MotionEvent.ACTION_CANCEL: {
                 cancelTouch();
@@ -2785,14 +2799,19 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                 if (canScrollVertically) {
                     nestedScrollAxis |= View.SCROLL_AXIS_VERTICAL;
                 }
+
+
+                // TODO 1、查找 NestedScrollingParent
                 startNestedScroll(nestedScrollAxis);
-            } break;
+            }
+            break;
 
             case MotionEvent.ACTION_POINTER_DOWN: {
                 mScrollPointerId = e.getPointerId(actionIndex);
                 mInitialTouchX = mLastTouchX = (int) (e.getX(actionIndex) + 0.5f);
                 mInitialTouchY = mLastTouchY = (int) (e.getY(actionIndex) + 0.5f);
-            } break;
+            }
+            break;
 
             case MotionEvent.ACTION_MOVE: {
                 final int index = e.findPointerIndex(mScrollPointerId);
@@ -2807,15 +2826,20 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                 int dx = mLastTouchX - x;
                 int dy = mLastTouchY - y;
 
-                if (dispatchNestedPreScroll(dx, dy, mScrollConsumed, mScrollOffset)) {
-                    dx -= mScrollConsumed[0];
-                    dy -= mScrollConsumed[1];
+                // 询问父控件，要不要处理事件,父控件消费mScrollConsumed(dx和dy)
+                if (dispatchNestedPreScroll(
+                        dx, dy,
+                        mScrollConsumed, // 父容器滚动消耗了多少
+                        mScrollOffset)) {
+                    dx -= mScrollConsumed[0];// dx = dx - mScrollConsumed[0
+                    dy -= mScrollConsumed[1];// dy = dy - mScrollConsumed[1]
                     vtev.offsetLocation(mScrollOffset[0], mScrollOffset[1]);
                     // Updated the nested offsets
                     mNestedOffsets[0] += mScrollOffset[0];
                     mNestedOffsets[1] += mScrollOffset[1];
                 }
 
+                // 拖动
                 if (mScrollState != SCROLL_STATE_DRAGGING) {
                     boolean startScroll = false;
                     if (canScrollHorizontally && Math.abs(dx) > mTouchSlop) {
@@ -2853,11 +2877,13 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                         mGapWorker.postFromTraversal(this, dx, dy);
                     }
                 }
-            } break;
+            }
+            break;
 
             case MotionEvent.ACTION_POINTER_UP: {
                 onPointerUp(e);
-            } break;
+            }
+            break;
 
             case MotionEvent.ACTION_UP: {
                 mVelocityTracker.addMovement(vtev);
@@ -2871,11 +2897,13 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                     setScrollState(SCROLL_STATE_IDLE);
                 }
                 resetTouch();
-            } break;
+            }
+            break;
 
             case MotionEvent.ACTION_CANCEL: {
                 cancelTouch();
-            } break;
+            }
+            break;
         }
 
         if (!eventAddedToVelocityTracker) {
@@ -3068,7 +3096,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * supports item animations}.
      *
      * @param animator The ItemAnimator being set. If null, no animations will occur
-     * when changes occur to the items in this RecyclerView.
+     *                 when changes occur to the items in this RecyclerView.
      */
     public void setItemAnimator(ItemAnimator animator) {
         if (mItemAnimator != null) {
@@ -3130,7 +3158,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * similar mechanism.
      *
      * @return <code>true</code> if RecyclerView is currently computing a layout, <code>false</code>
-     *         otherwise
+     * otherwise
      */
     public boolean isComputingLayout() {
         return mLayoutOrScrollCounter > 0;
@@ -3220,10 +3248,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         mState.mRunSimpleAnimations = mFirstLayoutComplete
                 && mItemAnimator != null
                 && (mDataSetHasChangedAfterLayout
-                        || animationTypeSupported
-                        || mLayout.mRequestedSimpleAnimations)
+                || animationTypeSupported
+                || mLayout.mRequestedSimpleAnimations)
                 && (!mDataSetHasChangedAfterLayout
-                        || mAdapter.hasStableIds());
+                || mAdapter.hasStableIds());
         mState.mRunPredictiveAnimations = mState.mRunSimpleAnimations
                 && animationTypeSupported
                 && !mDataSetHasChangedAfterLayout
@@ -3300,7 +3328,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
             // removed item.
             mState.mFocusedItemPosition = mDataSetHasChangedAfterLayout ? NO_POSITION
                     : (focusedVh.isRemoved() ? focusedVh.mOldPosition
-                            : focusedVh.getAdapterPosition());
+                    : focusedVh.getAdapterPosition());
             mState.mFocusedSubChildId = getDeepestFocusedViewWithId(focusedVh.itemView);
         }
     }
@@ -3316,6 +3344,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * previously focused item. It first traverses the adapter forward to find a focusable candidate
      * and if no such candidate is found, it reverses the focus search direction for the items
      * before the mFocusedItemPosition'th index;
+     *
      * @return The best candidate to request focus on, or null if no such candidate exists. Null
      * indicates all the existing adapter items are unfocusable.
      */
@@ -3651,15 +3680,15 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * <p>
      * If it is not an expected error, we at least print an error to notify the developer and ignore
      * the animation.
-     *
+     * <p>
      * https://code.google.com/p/android/issues/detail?id=193958
      *
-     * @param key The change key
-     * @param holder Current ViewHolder
+     * @param key                 The change key
+     * @param holder              Current ViewHolder
      * @param oldChangeViewHolder Changed ViewHolder
      */
     private void handleMissingPreInfoForChangeError(long key,
-            ViewHolder holder, ViewHolder oldChangeViewHolder) {
+                                                    ViewHolder holder, ViewHolder oldChangeViewHolder) {
         // check if two VH have the same key, if so, print that as an error
         final int childCount = mChildHelper.getChildCount();
         for (int i = 0; i < childCount; i++) {
@@ -3693,7 +3722,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * also clears the bounce back flag.
      */
     void recordAnimationInfoIfBouncedHiddenView(ViewHolder viewHolder,
-            ItemHolderInfo animationInfo) {
+                                                ItemHolderInfo animationInfo) {
         // looks like this view bounced back from hidden list!
         viewHolder.setFlags(0, ViewHolder.FLAG_BOUNCED_FROM_HIDDEN_LIST);
         if (mState.mTrackOldChangeHolders && viewHolder.isUpdated()
@@ -3760,7 +3789,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     }
 
     void animateAppearance(@NonNull ViewHolder itemHolder,
-            @Nullable ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
+                           @Nullable ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo) {
         itemHolder.setIsRecyclable(false);
         if (mItemAnimator.animateAppearance(itemHolder, preLayoutInfo, postLayoutInfo)) {
             postAnimationRunner();
@@ -3768,7 +3797,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     }
 
     void animateDisappearance(@NonNull ViewHolder holder,
-            @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo) {
+                              @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo) {
         addAnimatingView(holder);
         holder.setIsRecyclable(false);
         if (mItemAnimator.animateDisappearance(holder, preLayoutInfo, postLayoutInfo)) {
@@ -3777,8 +3806,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     }
 
     private void animateChange(@NonNull ViewHolder oldHolder, @NonNull ViewHolder newHolder,
-            @NonNull ItemHolderInfo preInfo, @NonNull ItemHolderInfo postInfo,
-            boolean oldHolderDisappearing, boolean newHolderDisappearing) {
+                               @NonNull ItemHolderInfo preInfo, @NonNull ItemHolderInfo postInfo,
+                               boolean oldHolderDisappearing, boolean newHolderDisappearing) {
         oldHolder.setIsRecyclable(false);
         if (oldHolderDisappearing) {
             addAnimatingView(oldHolder);
@@ -4014,7 +4043,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     }
 
     void offsetPositionRecordsForRemove(int positionStart, int itemCount,
-            boolean applyToPreLayout) {
+                                        boolean applyToPreLayout) {
         final int positionEnd = positionStart + itemCount;
         final int childCount = mChildHelper.getUnfilteredChildCount();
         for (int i = 0; i < childCount; i++) {
@@ -4047,7 +4076,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * Rebind existing views for the given range, or create as needed.
      *
      * @param positionStart Adapter position to start at
-     * @param itemCount Number of views that must explicitly be rebound
+     * @param itemCount     Number of views that must explicitly be rebound
      */
     void viewRangeUpdate(int positionStart, int itemCount, Object payload) {
         final int childCount = mChildHelper.getUnfilteredChildCount();
@@ -4082,9 +4111,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * swapAdapter, or notifyDataSetChanged), and that once layout occurs, all attached items should
      * be discarded or animated. Note that this work is deferred because RecyclerView requires a
      * layout to resolve non-incremental changes to the data set.
-     *
+     * <p>
      * Attached items are labeled as position unknown, and may no longer be cached.
-     *
+     * <p>
      * It is still possible for items to be prefetched while mDataSetHasChangedAfterLayout == true,
      * so calling this method *must* be associated with marking the cache invalid, so that the
      * only valid items that remain in the cache, once layout occurs, are prefetched items.
@@ -4148,7 +4177,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      *
      * @return True if the RecyclerView will try to preserve focused Item after a layout if it loses
      * focus.
-     *
      * @see #setPreserveFocusAfterLayout(boolean)
      */
     public boolean getPreserveFocusAfterLayout() {
@@ -4166,7 +4194,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      *
      * @param preserveFocusAfterLayout Whether RecyclerView should preserve focused Item during a
      *                                 layout calculations. Defaults to true.
-     *
      * @see #getPreserveFocusAfterLayout()
      */
     public void setPreserveFocusAfterLayout(boolean preserveFocusAfterLayout) {
@@ -4194,10 +4221,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * ViewHolder by calling {@link #getChildViewHolder(View)}.
      *
      * @param view The view that is a descendant of the RecyclerView.
-     *
      * @return The direct child of the RecyclerView which contains the given view or null if the
      * provided view is not a descendant of this RecyclerView.
-     *
      * @see #getChildViewHolder(View)
      * @see #findContainingViewHolder(View)
      */
@@ -4215,7 +4240,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * Returns the ViewHolder that contains the given view.
      *
      * @param view The view that is a descendant of the RecyclerView.
-     *
      * @return The ViewHolder that contains the given view or null if the provided view is not a
      * descendant of this RecyclerView.
      */
@@ -4385,7 +4409,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * <p>
      * This method checks only the children of RecyclerView. If the item with the given
      * <code>id</code> is not laid out, it <em>will not</em> create a new one.
-     *
+     * <p>
      * When the ItemAnimator is running a change animation, there might be 2 ViewHolders with the
      * same id. In this case, the updated ViewHolder will be returned.
      *
@@ -4493,7 +4517,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     /**
      * Returns the bounds of the view including its decoration and margins.
      *
-     * @param view The view element to check
+     * @param view      The view element to check
      * @param outBounds A rect that will receive the bounds of the element including its
      *                  decoration and margins.
      */
@@ -4875,7 +4899,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                 View shadowingView = holder.mShadowingHolder.itemView;
                 int left = view.getLeft();
                 int top = view.getTop();
-                if (left != shadowingView.getLeft() ||  top != shadowingView.getTop()) {
+                if (left != shadowingView.getLeft() || top != shadowingView.getTop()) {
                     shadowingView.layout(left, top,
                             left + shadowingView.getWidth(),
                             top + shadowingView.getHeight());
@@ -4948,21 +4972,20 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * and use {@link RecyclerView#setRecycledViewPool(RecycledViewPool)}.
      * <p>
      * RecyclerView automatically creates a pool for itself if you don't provide one.
-     *
      */
     public static class RecycledViewPool {
         private static final int DEFAULT_MAX_SCRAP = 5;
 
         /**
          * Tracks both pooled holders, as well as create/bind timing metadata for the given type.
-         *
+         * <p>
          * Note that this tracks running averages of create/bind time across all RecyclerViews
          * (and, indirectly, Adapters) that use this pool.
-         *
+         * <p>
          * 1) This enables us to track average create and bind times across multiple adapters. Even
          * though create (and especially bind) may behave differently for different Adapter
          * subclasses, sharing the pool is a strong signal that they'll perform similarly, per type.
-         *
+         * <p>
          * 2) If {@link #willBindInTime(int, long, long)} returns false for one view, it will return
          * false for all other views of its type for the same deadline. This prevents items
          * constructed by {@link GapWorker} prefetch from being bound to a lower priority prefetch.
@@ -4974,6 +4997,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
             long mCreateRunningAverageNs = 0;
             long mBindRunningAverageNs = 0;
         }
+
         SparseArray<ScrapData> mScrap = new SparseArray<>();
 
         private int mAttachCount = 0;
@@ -5080,13 +5104,13 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * RecycledViewPool will clear its cache if it has only one adapter attached and the new
          * adapter uses a different ViewHolder than the oldAdapter.
          *
-         * @param oldAdapter The previous adapter instance. Will be detached.
-         * @param newAdapter The new adapter instance. Will be attached.
+         * @param oldAdapter             The previous adapter instance. Will be detached.
+         * @param newAdapter             The new adapter instance. Will be attached.
          * @param compatibleWithPrevious True if both oldAdapter and newAdapter are using the same
          *                               ViewHolder and view types.
          */
         void onAdapterChanged(Adapter oldAdapter, Adapter newAdapter,
-                boolean compatibleWithPrevious) {
+                              boolean compatibleWithPrevious) {
             if (oldAdapter != null) {
                 detach();
             }
@@ -5155,7 +5179,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     /**
      * Time base for deadline-aware work scheduling. Overridable for testing.
-     *
+     * <p>
      * Will return 0 to avoid cost of System.nanoTime where deadline-aware work scheduling
      * isn't relevant.
      */
@@ -5223,7 +5247,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
             // first, try the views that can be recycled
             for (int i = mCachedViews.size() - 1;
-                    i >= 0 && mCachedViews.size() > mViewCacheMax; i--) {
+                 i >= 0 && mCachedViews.size() > mViewCacheMax; i--) {
                 recycleCachedViewAt(i);
             }
         }
@@ -5276,16 +5300,16 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Attempts to bind view, and account for relevant timing information. If
          * deadlineNs != FOREVER_NS, this method may fail to bind, and return false.
          *
-         * @param holder Holder to be bound.
+         * @param holder         Holder to be bound.
          * @param offsetPosition Position of item to be bound.
-         * @param position Pre-layout position of item to be bound.
-         * @param deadlineNs Time, relative to getNanoTime(), by which bind/create work should
-         *                   complete. If FOREVER_NS is passed, this method will not fail to
-         *                   bind the holder.
+         * @param position       Pre-layout position of item to be bound.
+         * @param deadlineNs     Time, relative to getNanoTime(), by which bind/create work should
+         *                       complete. If FOREVER_NS is passed, this method will not fail to
+         *                       bind the holder.
          * @return
          */
         private boolean tryBindViewHolderByDeadline(ViewHolder holder, int offsetPosition,
-                int position, long deadlineNs) {
+                                                    int position, long deadlineNs) {
             holder.mOwnerRecyclerView = RecyclerView.this;
             final int viewType = holder.getItemViewType();
             long startBindNs = getNanoTime();
@@ -5316,7 +5340,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Note that, {@link #getViewForPosition(int)} already binds the View to the position so
          * you don't need to call this method unless you want to bind this View to another position.
          *
-         * @param view The view to update.
+         * @param view     The view to update.
          * @param position The position of the item to bind to this View.
          */
         public void bindViewToPosition(View view, int position) {
@@ -5382,7 +5406,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Obtain a view initialized for the given position.
-         *
+         * <p>
          * This method should be used by {@link LayoutManager} implementations to obtain
          * views to represent data from an {@link Adapter}.
          * <p>
@@ -5412,17 +5436,16 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * ViewHolder is aquired and must be bound but not enough time remains, an unbound holder is
          * returned. Use {@link ViewHolder#isBound()} on the returned object to check for this.
          *
-         * @param position Position of ViewHolder to be returned.
-         * @param dryRun True if the ViewHolder should not be removed from scrap/cache/
+         * @param position   Position of ViewHolder to be returned.
+         * @param dryRun     True if the ViewHolder should not be removed from scrap/cache/
          * @param deadlineNs Time, relative to getNanoTime(), by which bind/create work should
          *                   complete. If FOREVER_NS is passed, this method will not fail to
          *                   create/bind the holder if needed.
-         *
          * @return ViewHolder for requested position
          */
         @Nullable
         ViewHolder tryGetViewHolderForPositionByDeadline(int position,
-                boolean dryRun, long deadlineNs) {
+                                                         boolean dryRun, long deadlineNs) {
             if (position < 0 || position >= mState.getItemCount()) {
                 throw new IndexOutOfBoundsException("Invalid item position " + position
                         + "(" + position + "). Item count:" + mState.getItemCount());
@@ -5644,6 +5667,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * Internally, use this method instead of {@link #recycleView(android.view.View)} to
          * catch potential bugs.
+         *
          * @param view
          */
         void recycleViewInternal(View view) {
@@ -5721,9 +5745,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
             if (forceRecycle || holder.isRecyclable()) {
                 if (mViewCacheMax > 0
                         && !holder.hasAnyOfTheFlags(ViewHolder.FLAG_INVALID
-                                | ViewHolder.FLAG_REMOVED
-                                | ViewHolder.FLAG_UPDATE
-                                | ViewHolder.FLAG_ADAPTER_POSITION_UNKNOWN)) {
+                        | ViewHolder.FLAG_REMOVED
+                        | ViewHolder.FLAG_UPDATE
+                        | ViewHolder.FLAG_ADAPTER_POSITION_UNKNOWN)) {
                     // Retire oldest cached view
                     int cachedViewSize = mCachedViews.size();
                     if (cachedViewSize >= mViewCacheMax && cachedViewSize > 0) {
@@ -5775,10 +5799,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Prepares the ViewHolder to be removed/recycled, and inserts it into the RecycledViewPool.
-         *
+         * <p>
          * Pass false to dispatchRecycled for views that have not been bound.
          *
-         * @param holder Holder to be added to the pool.
+         * @param holder           Holder to be added to the pool.
          * @param dispatchRecycled True to dispatch View recycled callbacks.
          */
         void addViewHolderToRecycledViewPool(ViewHolder holder, boolean dispatchRecycled) {
@@ -5900,7 +5924,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Returns a view for the position either from attach scrap, hidden children, or cache.
          *
          * @param position Item position
-         * @param dryRun  Does a dry run, finds the ViewHolder but does not remove
+         * @param dryRun   Does a dry run, finds the ViewHolder but does not remove
          * @return a ViewHolder that can be re-used for this position.
          */
         ViewHolder getScrapOrHiddenOrCachedHolderForPosition(int position, boolean dryRun) {
@@ -6023,7 +6047,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         }
 
         void onAdapterChanged(Adapter oldAdapter, Adapter newAdapter,
-                boolean compatibleWithPrevious) {
+                              boolean compatibleWithPrevious) {
             clear();
             getRecycledViewPool().onAdapterChanged(oldAdapter, newAdapter, compatibleWithPrevious);
         }
@@ -6072,8 +6096,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         }
 
         /**
-         * @param removedFrom Remove start index
-         * @param count Remove count
+         * @param removedFrom      Remove start index
+         * @param count            Remove count
          * @param applyToPreLayout If true, changes will affect ViewHolder's pre-layout position, if
          *                         false, they'll be applied before the second layout pass
          */
@@ -6254,10 +6278,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * different items in the data set, it is a good idea to cache references to sub views of
          * the View to avoid unnecessary {@link View#findViewById(int)} calls.
          *
-         * @param parent The ViewGroup into which the new View will be added after it is bound to
-         *               an adapter position.
+         * @param parent   The ViewGroup into which the new View will be added after it is bound to
+         *                 an adapter position.
          * @param viewType The view type of the new View.
-         *
          * @return A new ViewHolder that holds a View of the given view type.
          * @see #getItemViewType(int)
          * @see #onBindViewHolder(ViewHolder, int)
@@ -6276,12 +6299,12 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * this method and should not keep a copy of it. If you need the position of an item later
          * on (e.g. in a click listener), use {@link ViewHolder#getAdapterPosition()} which will
          * have the updated adapter position.
-         *
+         * <p>
          * Override {@link #onBindViewHolder(ViewHolder, int, List)} instead if Adapter can
          * handle efficient partial bind.
          *
-         * @param holder The ViewHolder which should be updated to represent the contents of the
-         *        item at the given position in the data set.
+         * @param holder   The ViewHolder which should be updated to represent the contents of the
+         *                 item at the given position in the data set.
          * @param position The position of the item within the adapter's data set.
          */
         public abstract void onBindViewHolder(VH holder, int position);
@@ -6309,8 +6332,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * onBindViewHolder().  For example when the view is not attached to the screen, the
          * payload in notifyItemChange() will be simply dropped.
          *
-         * @param holder The ViewHolder which should be updated to represent the contents of the
-         *               item at the given position in the data set.
+         * @param holder   The ViewHolder which should be updated to represent the contents of the
+         *                 item at the given position in the data set.
          * @param position The position of the item within the adapter's data set.
          * @param payloads A non-null list of merged payloads. Can be empty list if requires full
          *                 update.
@@ -6368,7 +6391,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *
          * @param position position to query
          * @return integer value identifying the type of the view needed to represent the item at
-         *                 <code>position</code>. Type codes need not be contiguous.
+         * <code>position</code>. Type codes need not be contiguous.
          */
         public int getItemViewType(int position) {
             return 0;
@@ -6525,7 +6548,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * unregistering} those observers when finished.</p>
          *
          * @param observer Observer to register
-         *
          * @see #unregisterAdapterDataObserver(RecyclerView.AdapterDataObserver)
          */
         public void registerAdapterDataObserver(AdapterDataObserver observer) {
@@ -6539,7 +6561,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * to the adapter.</p>
          *
          * @param observer Observer to unregister
-         *
          * @see #registerAdapterDataObserver(RecyclerView.AdapterDataObserver)
          */
         public void unregisterAdapterDataObserver(AdapterDataObserver observer) {
@@ -6608,7 +6629,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * The item at <code>position</code> retains the same identity.</p>
          *
          * @param position Position of the item that has changed
-         *
          * @see #notifyItemRangeChanged(int, int)
          */
         public final void notifyItemChanged(int position) {
@@ -6635,8 +6655,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * attached, the payload will be simply dropped.
          *
          * @param position Position of the item that has changed
-         * @param payload Optional parameter, use null to identify a "full" update
-         *
+         * @param payload  Optional parameter, use null to identify a "full" update
          * @see #notifyItemRangeChanged(int, int)
          */
         public final void notifyItemChanged(int position, Object payload) {
@@ -6653,8 +6672,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * be updated. The items in the given range retain the same identity.</p>
          *
          * @param positionStart Position of the first item that has changed
-         * @param itemCount Number of items that have changed
-         *
+         * @param itemCount     Number of items that have changed
          * @see #notifyItemChanged(int)
          */
         public final void notifyItemRangeChanged(int positionStart, int itemCount) {
@@ -6682,9 +6700,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * attached, the payload will be simply dropped.
          *
          * @param positionStart Position of the first item that has changed
-         * @param itemCount Number of items that have changed
-         * @param payload  Optional parameter, use null to identify a "full" update
-         *
+         * @param itemCount     Number of items that have changed
+         * @param payload       Optional parameter, use null to identify a "full" update
          * @see #notifyItemChanged(int)
          */
         public final void notifyItemRangeChanged(int positionStart, int itemCount, Object payload) {
@@ -6701,7 +6718,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * positions may be altered.</p>
          *
          * @param position Position of the newly inserted item in the data set
-         *
          * @see #notifyItemRangeInserted(int, int)
          */
         public final void notifyItemInserted(int position) {
@@ -6717,7 +6733,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * positions may be altered.</p>
          *
          * @param fromPosition Previous position of the item.
-         * @param toPosition New position of the item.
+         * @param toPosition   New position of the item.
          */
         public final void notifyItemMoved(int fromPosition, int toPosition) {
             mObservable.notifyItemMoved(fromPosition, toPosition);
@@ -6734,8 +6750,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * may be altered.</p>
          *
          * @param positionStart Position of the first item that was inserted
-         * @param itemCount Number of items inserted
-         *
+         * @param itemCount     Number of items inserted
          * @see #notifyItemInserted(int)
          */
         public final void notifyItemRangeInserted(int positionStart, int itemCount) {
@@ -6752,7 +6767,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * may be altered.</p>
          *
          * @param position Position of the item that has now been removed
-         *
          * @see #notifyItemRangeRemoved(int, int)
          */
         public final void notifyItemRemoved(int position) {
@@ -6770,7 +6784,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * may be altered.</p>
          *
          * @param positionStart Previous position of the first item that was removed
-         * @param itemCount Number of items removed from the data set
+         * @param itemCount     Number of items removed from the data set
          */
         public final void notifyItemRangeRemoved(int positionStart, int itemCount) {
             mObservable.notifyItemRangeRemoved(positionStart, itemCount);
@@ -6819,7 +6833,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * be then obtained from {@link #getProperties(Context, AttributeSet, int, int)}. In case
      * a LayoutManager specifies both constructors, the non-default constructor will take
      * precedence.
-     *
      */
     public abstract static class LayoutManager {
         ChildHelper mChildHelper;
@@ -6846,7 +6859,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Written by {@link GapWorker} when prefetches occur to track largest number of view ever
          * requested by a {@link #collectInitialPrefetchPositions(int, LayoutPrefetchRegistry)} or
          * {@link #collectAdjacentPrefetchPositions(int, int, State, LayoutPrefetchRegistry)} call.
-         *
+         * <p>
          * If expanded by a {@link #collectInitialPrefetchPositions(int, LayoutPrefetchRegistry)},
          * will be reset upon layout to prevent initial prefetches (often large, since they're
          * proportional to expected child count) from expanding cache permanently.
@@ -6886,8 +6899,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
              * indicating priority.
              *
              * @param layoutPosition Position of the item to prefetch.
-             * @param pixelDistance Distance from the current viewport to the bounds of the item,
-             *                      must be non-negative.
+             * @param pixelDistance  Distance from the current viewport to the bounds of the item,
+             *                       must be non-negative.
              */
             void addPosition(int layoutPosition, int pixelDistance);
         }
@@ -6932,7 +6945,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * For example, GridLayoutManager override that method to ensure that even if a column is
          * empty, the GridLayoutManager still measures wide enough to include it.
          *
-         * @param widthSpec The widthSpec that was passing into RecyclerView's onMeasure
+         * @param widthSpec  The widthSpec that was passing into RecyclerView's onMeasure
          * @param heightSpec The heightSpec that was passing into RecyclerView's onMeasure
          */
         void setMeasuredDimensionFromChildren(int widthSpec, int heightSpec) {
@@ -6981,9 +6994,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * This method is only called if the LayoutManager opted into the auto measurement API.
          *
          * @param childrenBounds The bounding box of all children
-         * @param wSpec The widthMeasureSpec that was passed into the RecyclerView.
-         * @param hSpec The heightMeasureSpec that was passed into the RecyclerView.
-         *
+         * @param wSpec          The widthMeasureSpec that was passed into the RecyclerView.
+         * @param hSpec          The heightMeasureSpec that was passed into the RecyclerView.
          * @see #setAutoMeasureEnabled(boolean)
          */
         public void setMeasuredDimension(Rect childrenBounds, int wSpec, int hSpec) {
@@ -7020,10 +7032,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Chooses a size from the given specs and parameters that is closest to the desired size
          * and also complies with the spec.
          *
-         * @param spec The measureSpec
+         * @param spec    The measureSpec
          * @param desired The preferred measurement
-         * @param min The minimum value
-         *
+         * @param min     The minimum value
          * @return A size that fits to the given specs
          */
         public static int chooseSize(int spec, int desired, int min) {
@@ -7111,9 +7122,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * </ol>
          *
          * @param enabled <code>True</code> if the Layout should be measured by the
-         *                             RecyclerView, <code>false</code> if the LayoutManager wants
-         *                             to measure itself.
-         *
+         *                RecyclerView, <code>false</code> if the LayoutManager wants
+         *                to measure itself.
          * @see #setMeasuredDimension(Rect, int, int)
          * @see #isAutoMeasureEnabled()
          */
@@ -7126,7 +7136,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *
          * @return <code>True</code> if the LayoutManager is measured by the RecyclerView or
          * <code>false</code> if it measures itself.
-         *
          * @see #setAutoMeasureEnabled(boolean)
          */
         public boolean isAutoMeasureEnabled() {
@@ -7173,7 +7182,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * size of the View cache to hold prefetched views.</p>
          *
          * @param enabled <code>True</code> if items should be prefetched in between traversals.
-         *
          * @see #isItemPrefetchEnabled()
          */
         public final void setItemPrefetchEnabled(boolean enabled) {
@@ -7190,9 +7198,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Sets whether the LayoutManager should be queried for views outside of
          * its viewport while the UI thread is idle between frames.
          *
-         * @see #setItemPrefetchEnabled(boolean)
-         *
          * @return true if item prefetch is enabled, false otherwise
+         * @see #setItemPrefetchEnabled(boolean)
          */
         public final boolean isItemPrefetchEnabled() {
             return mItemPrefetchEnabled;
@@ -7210,16 +7217,16 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * bound, if there is sufficient time available, in advance of being needed by a
          * scroll or layout.</p>
          *
-         * @param dx X movement component.
-         * @param dy Y movement component.
-         * @param state State of RecyclerView
+         * @param dx                     X movement component.
+         * @param dy                     Y movement component.
+         * @param state                  State of RecyclerView
          * @param layoutPrefetchRegistry PrefetchRegistry to add prefetch entries into.
-         *
          * @see #isItemPrefetchEnabled()
          * @see #collectInitialPrefetchPositions(int, LayoutPrefetchRegistry)
          */
         public void collectAdjacentPrefetchPositions(int dx, int dy, State state,
-                LayoutPrefetchRegistry layoutPrefetchRegistry) {}
+                                                     LayoutPrefetchRegistry layoutPrefetchRegistry) {
+        }
 
         /**
          * Gather all positions from the LayoutManager to be prefetched in preperation for its
@@ -7240,14 +7247,14 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * bound, if there is sufficient time available, in advance of being needed by a
          * scroll or layout.</p>
          *
-         * @param adapterItemCount number of items in the associated adapter.
+         * @param adapterItemCount       number of items in the associated adapter.
          * @param layoutPrefetchRegistry PrefetchRegistry to add prefetch entries into.
-         *
          * @see #isItemPrefetchEnabled()
          * @see #collectAdjacentPrefetchPositions(int, int, State, LayoutPrefetchRegistry)
          */
         public void collectInitialPrefetchPositions(int adapterItemCount,
-                LayoutPrefetchRegistry layoutPrefetchRegistry) {}
+                                                    LayoutPrefetchRegistry layoutPrefetchRegistry) {
+        }
 
         void dispatchAttachedToWindow(RecyclerView view) {
             mIsAttachedToWindow = true;
@@ -7277,7 +7284,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Calling this method when LayoutManager is not attached to a RecyclerView has no effect.
          *
          * @param action The Runnable that will be executed.
-         *
          * @see #removeCallbacks
          */
         public void postOnAnimation(Runnable action) {
@@ -7292,12 +7298,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Calling this method when LayoutManager is not attached to a RecyclerView has no effect.
          *
          * @param action The Runnable to remove from the message handling queue
-         *
          * @return true if RecyclerView could ask the Handler to remove the Runnable,
-         *         false otherwise. When the returned value is true, the Runnable
-         *         may or may not have been actually removed from the message queue
-         *         (for instance, if the Runnable was not in the queue already.)
-         *
+         * false otherwise. When the returned value is true, the Runnable
+         * may or may not have been actually removed from the message queue
+         * (for instance, if the Runnable was not in the queue already.)
          * @see #postOnAnimation
          */
         public boolean removeCallbacks(Runnable action) {
@@ -7306,6 +7310,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
             }
             return false;
         }
+
         /**
          * Called when this LayoutManager is both attached to a RecyclerView and that RecyclerView
          * is attached to a window.
@@ -7317,7 +7322,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Subclass implementations should always call through to the superclass implementation.
          *
          * @param view The RecyclerView this LayoutManager is bound to
-         *
          * @see #onDetachedFromWindow(RecyclerView, Recycler)
          */
         @CallSuper
@@ -7325,8 +7329,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         }
 
         /**
-         * @deprecated
-         * override {@link #onDetachedFromWindow(RecyclerView, Recycler)}
+         * @deprecated override {@link #onDetachedFromWindow(RecyclerView, Recycler)}
          */
         @Deprecated
         public void onDetachedFromWindow(RecyclerView view) {
@@ -7350,10 +7353,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * <p>
          * Subclass implementations should always call through to the superclass implementation.
          *
-         * @param view The RecyclerView this LayoutManager is bound to
+         * @param view     The RecyclerView this LayoutManager is bound to
          * @param recycler The recycler to use if you prefer to recycle your children instead of
          *                 keeping them around.
-         *
          * @see #onAttachedToWindow(RecyclerView)
          */
         @CallSuper
@@ -7372,7 +7374,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Lay out all relevant child views from the given adapter.
-         *
+         * <p>
          * The LayoutManager is in charge of the behavior of item animations. By default,
          * RecyclerView has a non-null {@link #getItemAnimator() ItemAnimator}, and simple
          * item animations are enabled. This means that add/remove operations on the
@@ -7417,9 +7419,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * onLayoutChildren() to see how they account for the APPEARING and
          * DISAPPEARING views.</p>
          *
-         * @param recycler         Recycler to use for fetching potentially cached views for a
-         *                         position
-         * @param state            Transient state of RecyclerView
+         * @param recycler Recycler to use for fetching potentially cached views for a
+         *                 position
+         * @param state    Transient state of RecyclerView
          */
         public void onLayoutChildren(Recycler recycler, State state) {
             Log.e(TAG, "You must override onLayoutChildren(Recycler recycler, State state) ");
@@ -7503,7 +7505,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * {@link #generateLayoutParams(android.view.ViewGroup.LayoutParams)} and
          * {@link #generateLayoutParams(android.content.Context, android.util.AttributeSet)}.</p>
          *
-         * @param c Context for obtaining styled attributes
+         * @param c     Context for obtaining styled attributes
          * @param attrs AttributeSet describing the supplied arguments
          * @return a new LayoutParams object
          */
@@ -7515,11 +7517,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Scroll horizontally by dx pixels in screen coordinates and return the distance traveled.
          * The default implementation does nothing and returns 0.
          *
-         * @param dx            distance to scroll by in pixels. X increases as scroll position
-         *                      approaches the right.
-         * @param recycler      Recycler to use for fetching potentially cached views for a
-         *                      position
-         * @param state         Transient state of RecyclerView
+         * @param dx       distance to scroll by in pixels. X increases as scroll position
+         *                 approaches the right.
+         * @param recycler Recycler to use for fetching potentially cached views for a
+         *                 position
+         * @param state    Transient state of RecyclerView
          * @return The actual distance scrolled. The return value will be negative if dx was
          * negative and scrolling proceeeded in that direction.
          * <code>Math.abs(result)</code> may be less than dx if a boundary was reached.
@@ -7532,11 +7534,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Scroll vertically by dy pixels in screen coordinates and return the distance traveled.
          * The default implementation does nothing and returns 0.
          *
-         * @param dy            distance to scroll in pixels. Y increases as scroll position
-         *                      approaches the bottom.
-         * @param recycler      Recycler to use for fetching potentially cached views for a
-         *                      position
-         * @param state         Transient state of RecyclerView
+         * @param dy       distance to scroll in pixels. Y increases as scroll position
+         *                 approaches the bottom.
+         * @param recycler Recycler to use for fetching potentially cached views for a
+         *                 position
+         * @param state    Transient state of RecyclerView
          * @return The actual distance scrolled. The return value will be negative if dy was
          * negative and scrolling proceeeded in that direction.
          * <code>Math.abs(result)</code> may be less than dy if a boundary was reached.
@@ -7567,8 +7569,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Scroll to the specified adapter position.
-         *
+         * <p>
          * Actual position of the item on the screen depends on the LayoutManager implementation.
+         *
          * @param position Scroll to this adapter position.
          */
         public void scrollToPosition(int position) {
@@ -7582,18 +7585,20 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * <p>To support smooth scrolling, override this method, create your {@link SmoothScroller}
          * instance and call {@link #startSmoothScroll(SmoothScroller)}.
          * </p>
+         *
          * @param recyclerView The RecyclerView to which this layout manager is attached
-         * @param state    Current State of RecyclerView
-         * @param position Scroll to this adapter position.
+         * @param state        Current State of RecyclerView
+         * @param position     Scroll to this adapter position.
          */
         public void smoothScrollToPosition(RecyclerView recyclerView, State state,
-                int position) {
+                                           int position) {
             Log.e(TAG, "You must override smoothScrollToPosition to support smooth scrolling");
         }
 
         /**
          * <p>Starts a smooth scroll using the provided SmoothScroller.</p>
          * <p>Calling this method will cancel any previous smooth scroll request.</p>
+         *
          * @param smoothScroller Instance which defines how smooth scroll should be animated
          */
         public void startSmoothScroll(SmoothScroller smoothScroller) {
@@ -7827,10 +7832,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * not a child of the LayoutManager (e.g. running a disappear animation).
          *
          * @param view The view that is a descendant of the LayoutManager.
-         *
          * @return The direct child of the LayoutManager which contains the given view or null if
          * the provided view is not a descendant of this LayoutManager.
-         *
          * @see RecyclerView#getChildViewHolder(View)
          * @see RecyclerView#findContainingViewHolder(View)
          */
@@ -7933,7 +7936,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *
          * @param child Child to reattach
          * @param index Intended child index for child
-         * @param lp LayoutParams for child
+         * @param lp    LayoutParams for child
          */
         public void attachView(View child, int index, LayoutParams lp) {
             ViewHolder vh = getChildViewHolderInt(child);
@@ -7943,7 +7946,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                 mRecyclerView.mViewInfoStore.removeFromDisappearedInLayout(vh);
             }
             mChildHelper.attachViewToParent(child, index, lp, vh.isRemoved());
-            if (DISPATCH_TEMP_DETACH)  {
+            if (DISPATCH_TEMP_DETACH) {
                 child.dispatchFinishTemporaryDetach();
             }
         }
@@ -7985,7 +7988,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Moves a View from one position to another.
          *
          * @param fromIndex The View's initial index
-         * @param toIndex The View's target index
+         * @param toIndex   The View's target index
          */
         public void moveView(int fromIndex, int toIndex) {
             View view = getChildAt(fromIndex);
@@ -8003,7 +8006,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * <p>Scrapping a view allows it to be rebound and reused to show updated or
          * different data.</p>
          *
-         * @param child Child to detach and scrap
+         * @param child    Child to detach and scrap
          * @param recycler Recycler to deposit the new scrap view into
          */
         public void detachAndScrapView(View child, Recycler recycler) {
@@ -8017,7 +8020,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * <p>Scrapping a view allows it to be rebound and reused to show updated or
          * different data.</p>
          *
-         * @param index Index of child to detach and scrap
+         * @param index    Index of child to detach and scrap
          * @param recycler Recycler to deposit the new scrap view into
          */
         public void detachAndScrapViewAt(int index, Recycler recycler) {
@@ -8028,7 +8031,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * Remove a child view and recycle it using the given Recycler.
          *
-         * @param child Child to remove and recycle
+         * @param child    Child to remove and recycle
          * @param recycler Recycler to use to recycle child
          */
         public void removeAndRecycleView(View child, Recycler recycler) {
@@ -8039,7 +8042,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * Remove a child view and recycle it using the given Recycler.
          *
-         * @param index Index of child to remove and recycle
+         * @param index    Index of child to remove and recycle
          * @param recycler Recycler to use to recycle child
          */
         public void removeAndRecycleViewAt(int index, Recycler recycler) {
@@ -8060,6 +8063,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Return the child view at the given index
+         *
          * @param index Index of child to return
          * @return Child view at index
          */
@@ -8077,7 +8081,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * {@link View.MeasureSpec#EXACTLY} even if it was measured with a different spec mode.
          *
          * @return Width measure spec mode.
-         *
          * @see View.MeasureSpec#getMode(int)
          * @see View#onMeasure(int, int)
          */
@@ -8095,7 +8098,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * {@link View.MeasureSpec#EXACTLY} even if it was measured with a different spec mode.
          *
          * @return Height measure spec mode.
-         *
          * @see View.MeasureSpec#getMode(int)
          * @see View#onMeasure(int, int)
          */
@@ -8376,8 +8378,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * <p>If the RecyclerView can be scrolled in either dimension the caller may
          * pass 0 as the widthUsed or heightUsed parameters as they will be irrelevant.</p>
          *
-         * @param child Child view to measure
-         * @param widthUsed Width in pixels currently consumed by other views, if relevant
+         * @param child      Child view to measure
+         * @param widthUsed  Width in pixels currently consumed by other views, if relevant
          * @param heightUsed Height in pixels currently consumed by other views, if relevant
          */
         public void measureChild(View child, int widthUsed, int heightUsed) {
@@ -8410,6 +8412,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         }
 
         // we may consider making this public
+
         /**
          * RecyclerView internally does its own View measurement caching which should help with
          * WRAP_CONTENT.
@@ -8431,7 +8434,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * {@link #setMeasurementCacheEnabled(boolean)}.
          *
          * @return True if measurement cache is enabled, false otherwise.
-         *
          * @see #setMeasurementCacheEnabled(boolean)
          */
         public boolean isMeasurementCacheEnabled() {
@@ -8443,7 +8445,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * a more aggressive cache than the framework uses.
          *
          * @param measurementCacheEnabled True to enable the measurement cache, false otherwise.
-         *
          * @see #isMeasurementCacheEnabled()
          */
         public void setMeasurementCacheEnabled(boolean measurementCacheEnabled) {
@@ -8462,7 +8463,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                 case MeasureSpec.AT_MOST:
                     return specSize >= childSize;
                 case MeasureSpec.EXACTLY:
-                    return  specSize == childSize;
+                    return specSize == childSize;
             }
             return false;
         }
@@ -8475,8 +8476,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * <p>If the RecyclerView can be scrolled in either dimension the caller may
          * pass 0 as the widthUsed or heightUsed parameters as they will be irrelevant.</p>
          *
-         * @param child Child view to measure
-         * @param widthUsed Width in pixels currently consumed by other views, if relevant
+         * @param child      Child view to measure
+         * @param widthUsed  Width in pixels currently consumed by other views, if relevant
          * @param heightUsed Height in pixels currently consumed by other views, if relevant
          */
         public void measureChildWithMargins(View child, int widthUsed, int heightUsed) {
@@ -8502,18 +8503,17 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * Calculate a MeasureSpec value for measuring a child view in one dimension.
          *
-         * @param parentSize Size of the parent view where the child will be placed
-         * @param padding Total space currently consumed by other elements of the parent
+         * @param parentSize     Size of the parent view where the child will be placed
+         * @param padding        Total space currently consumed by other elements of the parent
          * @param childDimension Desired size of the child view, or MATCH_PARENT/WRAP_CONTENT.
          *                       Generally obtained from the child view's LayoutParams
-         * @param canScroll true if the parent RecyclerView can scroll in this dimension
-         *
+         * @param canScroll      true if the parent RecyclerView can scroll in this dimension
          * @return a MeasureSpec value for the child view
          * @deprecated use {@link #getChildMeasureSpec(int, int, int, int, boolean)}
          */
         @Deprecated
         public static int getChildMeasureSpec(int parentSize, int padding, int childDimension,
-                boolean canScroll) {
+                                              boolean canScroll) {
             int size = Math.max(0, parentSize - padding);
             int resultSize = 0;
             int resultMode = 0;
@@ -8546,17 +8546,16 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * Calculate a MeasureSpec value for measuring a child view in one dimension.
          *
-         * @param parentSize Size of the parent view where the child will be placed
-         * @param parentMode The measurement spec mode of the parent
-         * @param padding Total space currently consumed by other elements of parent
+         * @param parentSize     Size of the parent view where the child will be placed
+         * @param parentMode     The measurement spec mode of the parent
+         * @param padding        Total space currently consumed by other elements of parent
          * @param childDimension Desired size of the child view, or MATCH_PARENT/WRAP_CONTENT.
          *                       Generally obtained from the child view's LayoutParams
-         * @param canScroll true if the parent RecyclerView can scroll in this dimension
-         *
+         * @param canScroll      true if the parent RecyclerView can scroll in this dimension
          * @return a MeasureSpec value for the child view
          */
         public static int getChildMeasureSpec(int parentSize, int parentMode, int padding,
-                int childDimension, boolean canScroll) {
+                                              int childDimension, boolean canScroll) {
             int size = Math.max(0, parentSize - padding);
             int resultSize = 0;
             int resultMode = 0;
@@ -8607,7 +8606,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *
          * @param child Child view to query
          * @return child's measured width plus <code>ItemDecoration</code> insets
-         *
          * @see View#getMeasuredWidth()
          */
         public int getDecoratedMeasuredWidth(View child) {
@@ -8621,7 +8619,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *
          * @param child Child view to query
          * @return child's measured height plus <code>ItemDecoration</code> insets
-         *
          * @see View#getMeasuredHeight()
          */
         public int getDecoratedMeasuredHeight(View child) {
@@ -8650,12 +8647,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *     <li>{@link #getDecoratedMeasuredHeight(View)}</li>
          * </ul>
          *
-         * @param child Child to lay out
-         * @param left Left edge, with item decoration insets included
-         * @param top Top edge, with item decoration insets included
-         * @param right Right edge, with item decoration insets included
+         * @param child  Child to lay out
+         * @param left   Left edge, with item decoration insets included
+         * @param top    Top edge, with item decoration insets included
+         * @param right  Right edge, with item decoration insets included
          * @param bottom Bottom edge, with item decoration insets included
-         *
          * @see View#layout(int, int, int, int)
          * @see #layoutDecoratedWithMargins(View, int, int, int, int)
          */
@@ -8685,17 +8681,16 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *     <li>{@link #getDecoratedMeasuredHeight(View)}</li>
          * </ul>
          *
-         * @param child Child to lay out
-         * @param left Left edge, with item decoration insets and left margin included
-         * @param top Top edge, with item decoration insets and top margin included
-         * @param right Right edge, with item decoration insets and right margin included
+         * @param child  Child to lay out
+         * @param left   Left edge, with item decoration insets and left margin included
+         * @param top    Top edge, with item decoration insets and top margin included
+         * @param right  Right edge, with item decoration insets and right margin included
          * @param bottom Bottom edge, with item decoration insets and bottom margin included
-         *
          * @see View#layout(int, int, int, int)
          * @see #layoutDecorated(View, int, int, int, int)
          */
         public void layoutDecoratedWithMargins(View child, int left, int top, int right,
-                int bottom) {
+                                               int bottom) {
             final LayoutParams lp = (LayoutParams) child.getLayoutParams();
             final Rect insets = lp.mDecorInsets;
             child.layout(left + insets.left + lp.leftMargin, top + insets.top + lp.topMargin,
@@ -8710,9 +8705,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * If {@code includeDecorInsets} is {@code true}, they are applied first before applying
          * the View's matrix so that the decor offsets also go through the same transformation.
          *
-         * @param child The ItemView whose bounding box should be calculated.
+         * @param child              The ItemView whose bounding box should be calculated.
          * @param includeDecorInsets True if the decor insets should be included in the bounding box
-         * @param out The rectangle into which the output will be written.
+         * @param out                The rectangle into which the output will be written.
          */
         public void getTransformedBoundingBox(View child, boolean includeDecorInsets, Rect out) {
             if (includeDecorInsets) {
@@ -8743,7 +8738,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * Returns the bounds of the view including its decoration and margins.
          *
-         * @param view The view element to check
+         * @param view      The view element to check
          * @param outBounds A rect that will receive the bounds of the element including its
          *                  decoration and margins.
          */
@@ -8813,7 +8808,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * measure child methods is called. If you need to measure the child with custom specs via
          * {@link View#measure(int, int)}, you can use this method to get decorations.
          *
-         * @param child The child view whose decorations should be calculated
+         * @param child   The child view whose decorations should be calculated
          * @param outRect The Rect to hold result values
          */
         public void calculateItemDecorationsForChild(View child, Rect outRect) {
@@ -8904,7 +8899,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          */
         @Nullable
         public View onFocusSearchFailed(View focused, int direction, Recycler recycler,
-                State state) {
+                                        State state) {
             return null;
         }
 
@@ -8917,12 +8912,12 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * that did not have attached views representing them. The LayoutManager should not add
          * or remove views from this method.
          *
-         * @param focused The currently focused view
+         * @param focused   The currently focused view
          * @param direction One of {@link View#FOCUS_UP}, {@link View#FOCUS_DOWN},
          *                  {@link View#FOCUS_LEFT}, {@link View#FOCUS_RIGHT},
          *                  {@link View#FOCUS_BACKWARD}, {@link View#FOCUS_FORWARD}
          * @return A descendant view to focus or null to fall back to default behavior.
-         *         The default implementation returns null.
+         * The default implementation returns null.
          */
         public View onInterceptFocusSearch(View focused, int direction) {
             return null;
@@ -8936,15 +8931,15 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * <p>The base implementation will attempt to perform a standard programmatic scroll
          * to bring the given rect into view, within the padded area of the RecyclerView.</p>
          *
-         * @param child The direct child making the request.
-         * @param rect  The rectangle in the child's coordinates the child
-         *              wishes to be on the screen.
+         * @param child     The direct child making the request.
+         * @param rect      The rectangle in the child's coordinates the child
+         *                  wishes to be on the screen.
          * @param immediate True to forbid animated or delayed scrolling,
          *                  false otherwise
          * @return Whether the group scrolled to handle the operation
          */
         public boolean requestChildRectangleOnScreen(RecyclerView parent, View child, Rect rect,
-                boolean immediate) {
+                                                     boolean immediate) {
             final int parentLeft = getPaddingLeft();
             final int parentTop = getPaddingTop();
             final int parentRight = getWidth() - getPaddingRight();
@@ -9014,7 +9009,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @return true if the default scroll behavior should be suppressed
          */
         public boolean onRequestChildFocus(RecyclerView parent, State state, View child,
-                View focused) {
+                                           View focused) {
             return onRequestChildFocus(parent, child, focused);
         }
 
@@ -9043,22 +9038,20 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * <p>The default implementation returns <code>false</code> to trigger RecyclerView
          * to fall back to the default ViewGroup behavior.</p>
          *
-         * @param recyclerView The RecyclerView hosting this LayoutManager
-         * @param views List of output views. This method should add valid focusable views
-         *              to this list.
-         * @param direction One of {@link View#FOCUS_UP}, {@link View#FOCUS_DOWN},
-         *                  {@link View#FOCUS_LEFT}, {@link View#FOCUS_RIGHT},
-         *                  {@link View#FOCUS_BACKWARD}, {@link View#FOCUS_FORWARD}
+         * @param recyclerView  The RecyclerView hosting this LayoutManager
+         * @param views         List of output views. This method should add valid focusable views
+         *                      to this list.
+         * @param direction     One of {@link View#FOCUS_UP}, {@link View#FOCUS_DOWN},
+         *                      {@link View#FOCUS_LEFT}, {@link View#FOCUS_RIGHT},
+         *                      {@link View#FOCUS_BACKWARD}, {@link View#FOCUS_FORWARD}
          * @param focusableMode The type of focusables to be added.
-         *
          * @return true to suppress the default behavior, false to add default focusables after
-         *         this method returns.
-         *
+         * this method returns.
          * @see #FOCUSABLES_ALL
          * @see #FOCUSABLES_TOUCH_MODE
          */
         public boolean onAddFocusables(RecyclerView recyclerView, ArrayList<View> views,
-                int direction, int focusableMode) {
+                                       int direction, int focusableMode) {
             return false;
         }
 
@@ -9115,7 +9108,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @param payload
          */
         public void onItemsUpdated(RecyclerView recyclerView, int positionStart, int itemCount,
-                Object payload) {
+                                   Object payload) {
             onItemsUpdated(recyclerView, positionStart, itemCount);
         }
 
@@ -9235,9 +9228,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * as UNSPECIFIED. AT_MOST measurements will be treated as EXACTLY and the RecyclerView
          * will consume all available space.</p>
          *
-         * @param recycler Recycler
-         * @param state Transient state of RecyclerView
-         * @param widthSpec Width {@link android.view.View.MeasureSpec}
+         * @param recycler   Recycler
+         * @param state      Transient state of RecyclerView
+         * @param widthSpec  Width {@link android.view.View.MeasureSpec}
          * @param heightSpec Height {@link android.view.View.MeasureSpec}
          */
         public void onMeasure(Recycler recycler, State state, int widthSpec, int heightSpec) {
@@ -9248,7 +9241,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * {@link View#setMeasuredDimension(int, int) Set the measured dimensions} of the
          * host RecyclerView.
          *
-         * @param widthSize Measured width
+         * @param widthSize  Measured width
          * @param heightSize Measured height
          */
         public void setMeasuredDimension(int widthSize, int heightSize) {
@@ -9268,6 +9261,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         public int getMinimumHeight() {
             return mRecyclerView.getMinimumHeight();
         }
+
         /**
          * <p>Called when the LayoutManager should save its state. This is a good time to save your
          * scroll position, configuration and anything else that may be required to restore the same
@@ -9359,7 +9353,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @see #getSelectionModeForAccessibility(RecyclerView.Recycler, RecyclerView.State)
          */
         public void onInitializeAccessibilityNodeInfo(Recycler recycler, State state,
-                AccessibilityNodeInfo info) {
+                                                      AccessibilityNodeInfo info) {
             if (mRecyclerView.canScrollVertically(-1)
                     || mRecyclerView.canScrollHorizontally(-1)) {
                 info.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
@@ -9396,7 +9390,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @see View#onInitializeAccessibilityEvent(android.view.accessibility.AccessibilityEvent)
          */
         public void onInitializeAccessibilityEvent(Recycler recycler, State state,
-                AccessibilityEvent event) {
+                                                   AccessibilityEvent event) {
             if (mRecyclerView == null || event == null) {
                 return;
             }
@@ -9435,7 +9429,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * android.view.accessibility.AccessibilityNodeInfo)
          */
         public void onInitializeAccessibilityNodeInfoForItem(Recycler recycler, State state,
-                View host, AccessibilityNodeInfo info) {
+                                                             View host, AccessibilityNodeInfo info) {
             int rowIndexGuess = canScrollVertically() ? getPosition(host) : 0;
             int columnIndexGuess = canScrollHorizontally() ? getPosition(host) : 0;
             final AccessibilityNodeInfo.CollectionItemInfo itemInfo =
@@ -9452,7 +9446,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Note that, calling this method will not guarantee that RecyclerView will run animations
          * at all. For example, if there is not any {@link ItemAnimator} set, RecyclerView will
          * not run any animations but will still clear this flag after the layout is complete.
-         *
          */
         public void requestSimpleAnimationsInNextLayout() {
             mRequestedSimpleAnimations = true;
@@ -9538,15 +9531,15 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * Called by AccessibilityDelegate when an action is requested from the RecyclerView.
          *
-         * @param recycler  The Recycler that can be used to convert view positions into adapter
-         *                  positions
-         * @param state     The current state of RecyclerView
-         * @param action    The action to perform
-         * @param args      Optional action arguments
+         * @param recycler The Recycler that can be used to convert view positions into adapter
+         *                 positions
+         * @param state    The current state of RecyclerView
+         * @param action   The action to perform
+         * @param args     Optional action arguments
          * @see View#performAccessibilityAction(int, android.os.Bundle)
          */
         public boolean performAccessibilityAction(Recycler recycler, State state, int action,
-                Bundle args) {
+                                                  Bundle args) {
             if (mRecyclerView == null) {
                 return false;
             }
@@ -9598,7 +9591,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @see View#performAccessibilityAction(int, android.os.Bundle)
          */
         public boolean performAccessibilityActionForItem(Recycler recycler, State state, View view,
-                int action, Bundle args) {
+                                                         int action, Bundle args) {
             return false;
         }
 
@@ -9608,7 +9601,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @return an object containing the properties as specified in the attrs.
          */
         public static Properties getProperties(Context context, AttributeSet attrs,
-                int defStyleAttr, int defStyleRes) {
+                                               int defStyleAttr, int defStyleRes) {
             Properties properties = new Properties();
             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RecyclerView,
                     defStyleAttr, defStyleRes);
@@ -9657,13 +9650,21 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Some general properties that a LayoutManager may want to use.
          */
         public static class Properties {
-            /** @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_android_orientation */
+            /**
+             * @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_android_orientation
+             */
             public int orientation;
-            /** @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_spanCount */
+            /**
+             * @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_spanCount
+             */
             public int spanCount;
-            /** @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_reverseLayout */
+            /**
+             * @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_reverseLayout
+             */
             public boolean reverseLayout;
-            /** @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_stackFromEnd */
+            /**
+             * @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_stackFromEnd
+             */
             public boolean stackFromEnd;
         }
     }
@@ -9684,17 +9685,16 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Any content drawn by this method will be drawn before the item views are drawn,
          * and will thus appear underneath the views.
          *
-         * @param c Canvas to draw into
+         * @param c      Canvas to draw into
          * @param parent RecyclerView this ItemDecoration is drawing into
-         * @param state The current state of RecyclerView
+         * @param state  The current state of RecyclerView
          */
         public void onDraw(Canvas c, RecyclerView parent, State state) {
             onDraw(c, parent);
         }
 
         /**
-         * @deprecated
-         * Override {@link #onDraw(Canvas, RecyclerView, RecyclerView.State)}
+         * @deprecated Override {@link #onDraw(Canvas, RecyclerView, RecyclerView.State)}
          */
         @Deprecated
         public void onDraw(Canvas c, RecyclerView parent) {
@@ -9705,17 +9705,16 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Any content drawn by this method will be drawn after the item views are drawn
          * and will thus appear over the views.
          *
-         * @param c Canvas to draw into
+         * @param c      Canvas to draw into
          * @param parent RecyclerView this ItemDecoration is drawing into
-         * @param state The current state of RecyclerView.
+         * @param state  The current state of RecyclerView.
          */
         public void onDrawOver(Canvas c, RecyclerView parent, State state) {
             onDrawOver(c, parent);
         }
 
         /**
-         * @deprecated
-         * Override {@link #onDrawOver(Canvas, RecyclerView, RecyclerView.State)}
+         * @deprecated Override {@link #onDrawOver(Canvas, RecyclerView, RecyclerView.State)}
          */
         @Deprecated
         public void onDrawOver(Canvas c, RecyclerView parent) {
@@ -9723,8 +9722,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
 
         /**
-         * @deprecated
-         * Use {@link #getItemOffsets(Rect, View, RecyclerView, State)}
+         * @deprecated Use {@link #getItemOffsets(Rect, View, RecyclerView, State)}
          */
         @Deprecated
         public void getItemOffsets(Rect outRect, int itemPosition, RecyclerView parent) {
@@ -9781,8 +9779,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @param e MotionEvent describing the touch event. All coordinates are in
          *          the RecyclerView's coordinate system.
          * @return true if this OnItemTouchListener wishes to begin intercepting touch events, false
-         *         to continue with the current behavior and continue observing future events in
-         *         the gesture.
+         * to continue with the current behavior and continue observing future events in
+         * the gesture.
          */
         boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e);
 
@@ -9801,7 +9799,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * {@link ViewGroup#onInterceptTouchEvent(MotionEvent)}.
          *
          * @param disallowIntercept True if the child does not want the parent to
-         *            intercept touch events.
+         *                          intercept touch events.
          * @see ViewParent#requestDisallowInterceptTouchEvent(boolean)
          */
         void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept);
@@ -9836,9 +9834,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * An OnScrollListener can be added to a RecyclerView to receive messages when a scrolling event
      * has occurred on that RecyclerView.
      * <p>
+     *
      * @see RecyclerView#addOnScrollListener(OnScrollListener)
      * @see RecyclerView#clearOnChildAttachStateChangeListeners()
-     *
      */
     public abstract static class OnScrollListener {
         /**
@@ -9848,7 +9846,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @param newState     The updated scroll state. One of {@link #SCROLL_STATE_IDLE},
          *                     {@link #SCROLL_STATE_DRAGGING} or {@link #SCROLL_STATE_SETTLING}.
          */
-        public void onScrollStateChanged(RecyclerView recyclerView, int newState){}
+        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+        }
 
         /**
          * Callback method to be invoked when the RecyclerView has been scrolled. This will be
@@ -9858,10 +9857,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * calculation. In that case, dx and dy will be 0.
          *
          * @param recyclerView The RecyclerView which scrolled.
-         * @param dx The amount of horizontal scroll.
-         * @param dy The amount of vertical scroll.
+         * @param dx           The amount of horizontal scroll.
+         * @param dy           The amount of vertical scroll.
          */
-        public void onScrolled(RecyclerView recyclerView, int dx, int dy){}
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+        }
     }
 
     /**
@@ -9874,7 +9874,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * This method is called whenever the view in the ViewHolder is recycled.
-         *
+         * <p>
          * RecyclerView calls this method right before clearing ViewHolder's internal data and
          * sending it to RecycledViewPool. This way, if ViewHolder was holding valid information
          * before being recycled, you can call {@link ViewHolder#getAdapterPosition()} to get
@@ -10014,11 +10014,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * Used when a ViewHolder starts the layout pass as a hidden ViewHolder but is re-used from
          * hidden list (as if it was scrap) without being recycled in between.
-         *
+         * <p>
          * When a ViewHolder is hidden, there are 2 paths it can be re-used:
-         *   a) Animation ends, view is recycled and used from the recycle pool.
-         *   b) LayoutManager asks for the View for that position while the ViewHolder is hidden.
-         *
+         * a) Animation ends, view is recycled and used from the recycle pool.
+         * b) LayoutManager asks for the View for that position while the ViewHolder is hidden.
+         * <p>
          * This flag is used to represent "case b" where the ViewHolder is reused without being
          * recycled (thus "bounced" from the hidden list). This state requires special handling
          * because the ViewHolder must be added to pre layout maps for animations as if it was
@@ -10100,12 +10100,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         }
 
         /**
+         * @see #getLayoutPosition()
+         * @see #getAdapterPosition()
          * @deprecated This method is deprecated because its meaning is ambiguous due to the async
          * handling of adapter updates. Please use {@link #getLayoutPosition()} or
          * {@link #getAdapterPosition()} depending on your use case.
-         *
-         * @see #getLayoutPosition()
-         * @see #getAdapterPosition()
          */
         @Deprecated
         public final int getPosition() {
@@ -10368,8 +10367,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * reference-counted.
          *
          * @param recyclable Whether this item is available to be recycled. Default value
-         * is true.
-         *
+         *                   is true.
          * @see #isRecyclable()
          */
         public final void setIsRecyclable(boolean recyclable) {
@@ -10394,7 +10392,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * @return true if this item is available to be recycled, false otherwise.
-         *
          * @see #setIsRecyclable(boolean)
          */
         public final boolean isRecyclable() {
@@ -10428,7 +10425,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      */
     @VisibleForTesting
     boolean setChildImportantForAccessibilityInternal(ViewHolder viewHolder,
-            int importantForAccessibility) {
+                                                      int importantForAccessibility) {
         if (isComputingLayout()) {
             viewHolder.mPendingAccessibilityState = importantForAccessibility;
             mPendingAccessibilityImportanceChange.add(viewHolder);
@@ -10795,6 +10792,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Normalizes the vector.
+         *
          * @param scrollVector The vector that points to the target scroll position
          */
         protected void normalize(PointF scrollVector) {
@@ -10811,6 +10809,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Called when smooth scroller is stopped. This is a good place to cleanup your state etc.
+         *
          * @see #stop()
          */
         protected abstract void onStop();
@@ -10821,11 +10820,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * <p>SmoothScroller should check dx, dy and if scroll should be changed, update the
          * provided {@link Action} to define the next scroll.</p>
          *
-         * @param dx        Last scroll amount horizontally
-         * @param dy        Last scroll amount vertically
-         * @param state     Transient state of RecyclerView
-         * @param action    If you want to trigger a new smooth scroll and cancel the previous one,
-         *                  update this object.
+         * @param dx     Last scroll amount horizontally
+         * @param dy     Last scroll amount vertically
+         * @param state  Transient state of RecyclerView
+         * @param action If you want to trigger a new smooth scroll and cancel the previous one,
+         *               update this object.
          */
         protected abstract void onSeekTargetStep(int dx, int dy, State state, Action action);
 
@@ -10833,10 +10832,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Called when the target position is laid out. This is the last callback SmoothScroller
          * will receive and it should update the provided {@link Action} to define the scroll
          * details towards the target view.
-         * @param targetView    The view element which render the target position.
-         * @param state         Transient state of RecyclerView
-         * @param action        Action instance that you should update to define final scroll action
-         *                      towards the targetView
+         *
+         * @param targetView The view element which render the target position.
+         * @param state      Transient state of RecyclerView
+         * @param action     Action instance that you should update to define final scroll action
+         *                   towards the targetView
          */
         protected abstract void onTargetFound(View targetView, State state, Action action);
 
@@ -10992,6 +10992,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
             /**
              * Sets the interpolator to calculate scroll steps
+             *
              * @param interpolator The interpolator to use. If you specify an interpolator, you must
              *                     also set the duration.
              * @see #setDuration(int)
@@ -11003,9 +11004,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
             /**
              * Updates the action with given parameters.
-             * @param dx Pixels to scroll horizontally
-             * @param dy Pixels to scroll vertically
-             * @param duration Duration of the animation in milliseconds
+             *
+             * @param dx           Pixels to scroll horizontally
+             * @param dy           Pixels to scroll vertically
+             * @param duration     Duration of the animation in milliseconds
              * @param interpolator Interpolator to be used when calculating scroll position in each
              *                     animation step
              */
@@ -11036,7 +11038,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
              * LayoutManager should not check whether the position exists in the adapter or not.
              *
              * @param targetPosition the target position to which the returned vector should point
-             *
              * @return the scroll vector for a given position.
              */
             PointF computeScrollVectorForPosition(int targetPosition);
@@ -11101,6 +11102,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
     /**
      * This is public so that the CREATOR can be access on cold launch.
+     *
      * @hide
      */
     public static class SavedState extends AbsSavedState {
@@ -11133,17 +11135,18 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         }
 
         public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
-                    @Override
-                    public SavedState createFromParcel(Parcel in) {
-                        return new SavedState(in);
-                    }
+            @Override
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
 
-                    @Override
-                    public SavedState[] newArray(int size) {
-                        return new SavedState[size];
-                    }
-                };
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
     }
+
     /**
      * <p>Contains useful information about the current RecyclerView state like target scroll
      * position or view focus. State object can also keep arbitrary data, identified by resource
@@ -11168,7 +11171,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         }
 
 
-        /** Owned by SmoothScroller */
+        /**
+         * Owned by SmoothScroller
+         */
         private int mTargetPosition = RecyclerView.NO_POSITION;
 
         private SparseArray<Object> mData;
@@ -11196,7 +11201,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                 STEP_START, STEP_LAYOUT, STEP_ANIMATIONS
         })
         @Retention(RetentionPolicy.SOURCE)
-        @interface LayoutState {}
+        @interface LayoutState {
+        }
 
         @LayoutState
         int mLayoutStep = STEP_START;
@@ -11282,6 +11288,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Returns true if
+         *
          * @return
          */
         public boolean isPreLayout() {
@@ -11293,7 +11300,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * or not.
          *
          * @return true if RecyclerView is calculating predictive animations to be run at the end
-         *         of the layout pass.
+         * of the layout pass.
          */
         public boolean willRunPredictiveAnimations() {
             return mRunPredictiveAnimations;
@@ -11304,7 +11311,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * or not.
          *
          * @return true if RecyclerView is calculating simple animations to be run at the end of
-         *         the layout pass.
+         * the layout pass.
          */
         public boolean willRunSimpleAnimations() {
             return mRunSimpleAnimations;
@@ -11312,6 +11319,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Removes the mapping from the specified id, if there was any.
+         *
          * @param resourceId Id of the resource you want to remove. It is suggested to use R.id.* to
          *                   preserve cross functionality and avoid conflicts.
          */
@@ -11355,6 +11363,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * If scroll is triggered to make a certain item visible, this value will return the
          * adapter index of that item.
+         *
          * @return Adapter index of the target item or
          * {@link RecyclerView#NO_POSITION} if there is no target
          * position.
@@ -11365,6 +11374,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * Returns if current scroll has a target position.
+         *
          * @return true if scroll is being triggered to make a certain position visible
          * @see #getTargetScrollPosition()
          */
@@ -11374,7 +11384,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         /**
          * @return true if the structure of the data set has changed since the last call to
-         *         onLayoutChildren, false otherwise
+         * onLayoutChildren, false otherwise
          */
         public boolean didStructureChange() {
             return mStructureChanged;
@@ -11443,7 +11453,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *
          * @param velocityX the fling velocity on the X axis
          * @param velocityY the fling velocity on the Y axis
-         *
          * @return true if the fling washandled, false otherwise.
          */
         public abstract boolean onFling(int velocityX, int velocityY);
@@ -11480,7 +11489,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
     /**
      * This class defines the animations that take place on items as changes are made
      * to the adapter.
-     *
+     * <p>
      * Subclasses of ItemAnimator can be used to implement custom animations for actions on
      * ViewHolder items. The RecyclerView will manage retaining these items while they
      * are being animated, but implementors must call {@link #dispatchAnimationFinished(ViewHolder)}
@@ -11504,6 +11513,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * The Item represented by this ViewHolder is updated.
          * <p>
+         *
          * @see #recordPreLayoutInformation(State, ViewHolder, int, List)
          */
         public static final int FLAG_CHANGED = ViewHolder.FLAG_UPDATE;
@@ -11511,6 +11521,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * The Item represented by this ViewHolder is removed from the adapter.
          * <p>
+         *
          * @see #recordPreLayoutInformation(State, ViewHolder, int, List)
          */
         public static final int FLAG_REMOVED = ViewHolder.FLAG_REMOVED;
@@ -11519,6 +11530,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Adapter {@link Adapter#notifyDataSetChanged()} has been called and the content
          * represented by this ViewHolder is invalid.
          * <p>
+         *
          * @see #recordPreLayoutInformation(State, ViewHolder, int, List)
          */
         public static final int FLAG_INVALIDATED = ViewHolder.FLAG_INVALID;
@@ -11529,6 +11541,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * any adapter change that may have a side effect on this item. (e.g. The item before this
          * one has been removed from the Adapter).
          * <p>
+         *
          * @see #recordPreLayoutInformation(State, ViewHolder, int, List)
          */
         public static final int FLAG_MOVED = ViewHolder.FLAG_MOVED;
@@ -11540,6 +11553,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * to add new items in pre-layout to specify their virtual location when they are invisible
          * (e.g. to specify the item should <i>animate in</i> from below the visible area).
          * <p>
+         *
          * @see #recordPreLayoutInformation(State, ViewHolder, int, List)
          */
         public static final int FLAG_APPEARED_IN_PRE_LAYOUT =
@@ -11554,7 +11568,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
                 FLAG_APPEARED_IN_PRE_LAYOUT
         })
         @Retention(RetentionPolicy.SOURCE)
-        public @interface AdapterChanges {}
+        public @interface AdapterChanges {
+        }
+
         private ItemAnimatorListener mListener = null;
         private ArrayList<ItemAnimatorFinishedListener> mFinishedListeners =
                 new ArrayList<ItemAnimatorFinishedListener>();
@@ -11670,20 +11686,19 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @param payloads    The payload list that was previously passed to
          *                    {@link Adapter#notifyItemChanged(int, Object)} or
          *                    {@link Adapter#notifyItemRangeChanged(int, int, Object)}.
-         *
          * @return An ItemHolderInfo instance that preserves necessary information about the
          * ViewHolder. This object will be passed back to related <code>animate**</code> methods
          * after layout is complete.
-         *
          * @see #recordPostLayoutInformation(State, ViewHolder)
          * @see #animateAppearance(ViewHolder, ItemHolderInfo, ItemHolderInfo)
          * @see #animateDisappearance(ViewHolder, ItemHolderInfo, ItemHolderInfo)
          * @see #animateChange(ViewHolder, ViewHolder, ItemHolderInfo, ItemHolderInfo)
          * @see #animatePersistence(ViewHolder, ItemHolderInfo, ItemHolderInfo)
          */
-        public @NonNull ItemHolderInfo recordPreLayoutInformation(@NonNull State state,
-                @NonNull ViewHolder viewHolder, @AdapterChanges int changeFlags,
-                @NonNull List<Object> payloads) {
+        public @NonNull
+        ItemHolderInfo recordPreLayoutInformation(@NonNull State state,
+                                                  @NonNull ViewHolder viewHolder, @AdapterChanges int changeFlags,
+                                                  @NonNull List<Object> payloads) {
             return obtainHolderInfo().setFrom(viewHolder);
         }
 
@@ -11700,19 +11715,18 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * @param state      The current State of RecyclerView which includes some useful data about
          *                   the layout that will be calculated.
          * @param viewHolder The ViewHolder whose information should be recorded.
-         *
          * @return An ItemHolderInfo that preserves necessary information about the ViewHolder.
          * This object will be passed back to related <code>animate**</code> methods when
          * RecyclerView decides how items should be animated.
-         *
          * @see #recordPreLayoutInformation(State, ViewHolder, int, List)
          * @see #animateAppearance(ViewHolder, ItemHolderInfo, ItemHolderInfo)
          * @see #animateDisappearance(ViewHolder, ItemHolderInfo, ItemHolderInfo)
          * @see #animateChange(ViewHolder, ViewHolder, ItemHolderInfo, ItemHolderInfo)
          * @see #animatePersistence(ViewHolder, ItemHolderInfo, ItemHolderInfo)
          */
-        public @NonNull ItemHolderInfo recordPostLayoutInformation(@NonNull State state,
-                @NonNull ViewHolder viewHolder) {
+        public @NonNull
+        ItemHolderInfo recordPostLayoutInformation(@NonNull State state,
+                                                   @NonNull ViewHolder viewHolder) {
             return obtainHolderInfo().setFrom(viewHolder);
         }
 
@@ -11746,18 +11760,17 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * is complete (or instantly call {@link #dispatchAnimationFinished(ViewHolder)} if it
          * decides not to animate the view).
          *
-         * @param viewHolder    The ViewHolder which should be animated
-         * @param preLayoutInfo The information that was returned from
-         *                      {@link #recordPreLayoutInformation(State, ViewHolder, int, List)}.
+         * @param viewHolder     The ViewHolder which should be animated
+         * @param preLayoutInfo  The information that was returned from
+         *                       {@link #recordPreLayoutInformation(State, ViewHolder, int, List)}.
          * @param postLayoutInfo The information that was returned from
          *                       {@link #recordPostLayoutInformation(State, ViewHolder)}. Might be
          *                       null if the LayoutManager did not layout the item.
-         *
          * @return true if a later call to {@link #runPendingAnimations()} is requested,
          * false otherwise.
          */
         public abstract boolean animateDisappearance(@NonNull ViewHolder viewHolder,
-                @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo);
+                                                     @NonNull ItemHolderInfo preLayoutInfo, @Nullable ItemHolderInfo postLayoutInfo);
 
         /**
          * Called by the RecyclerView when a ViewHolder is added to the layout.
@@ -11778,12 +11791,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *                       not predict that this ViewHolder will become visible.
          * @param postLayoutInfo The information that was returned from {@link
          *                       #recordPreLayoutInformation(State, ViewHolder, int, List)}.
-         *
          * @return true if a later call to {@link #runPendingAnimations()} is requested,
          * false otherwise.
          */
         public abstract boolean animateAppearance(@NonNull ViewHolder viewHolder,
-                @Nullable ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo);
+                                                  @Nullable ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo);
 
         /**
          * Called by the RecyclerView when a ViewHolder is present in both before and after the
@@ -11808,12 +11820,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *                       {@link #recordPreLayoutInformation(State, ViewHolder, int, List)}.
          * @param postLayoutInfo The information that was returned from {@link
          *                       #recordPreLayoutInformation(State, ViewHolder, int, List)}.
-         *
          * @return true if a later call to {@link #runPendingAnimations()} is requested,
          * false otherwise.
          */
         public abstract boolean animatePersistence(@NonNull ViewHolder viewHolder,
-                @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo);
+                                                   @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo);
 
         /**
          * Called by the RecyclerView when an adapter item is present both before and after the
@@ -11852,7 +11863,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * (or instantly call {@link #dispatchAnimationFinished(ViewHolder)} if it decides not to
          * animate the view).
          * <p>
-         *  If oldHolder and newHolder are the same instance, you should call
+         * If oldHolder and newHolder are the same instance, you should call
          * {@link #dispatchAnimationFinished(ViewHolder)} <b>only once</b>.
          * <p>
          * Note that when a ViewHolder both changes and disappears in the same layout pass, the
@@ -11867,23 +11878,23 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * LayoutManager lays out a new disappearing view that holds the updated information.
          * Built-in LayoutManagers try to avoid laying out updated versions of disappearing views.
          *
-         * @param oldHolder     The ViewHolder before the layout is started, might be the same
-         *                      instance with newHolder.
-         * @param newHolder     The ViewHolder after the layout is finished, might be the same
-         *                      instance with oldHolder.
+         * @param oldHolder      The ViewHolder before the layout is started, might be the same
+         *                       instance with newHolder.
+         * @param newHolder      The ViewHolder after the layout is finished, might be the same
+         *                       instance with oldHolder.
          * @param preLayoutInfo  The information that was returned from
          *                       {@link #recordPreLayoutInformation(State, ViewHolder, int, List)}.
          * @param postLayoutInfo The information that was returned from {@link
          *                       #recordPreLayoutInformation(State, ViewHolder, int, List)}.
-         *
          * @return true if a later call to {@link #runPendingAnimations()} is requested,
          * false otherwise.
          */
         public abstract boolean animateChange(@NonNull ViewHolder oldHolder,
-                @NonNull ViewHolder newHolder,
-                @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo);
+                                              @NonNull ViewHolder newHolder,
+                                              @NonNull ItemHolderInfo preLayoutInfo, @NonNull ItemHolderInfo postLayoutInfo);
 
-        @AdapterChanges static int buildAdapterChangeFlagsForAnimations(ViewHolder viewHolder) {
+        @AdapterChanges
+        static int buildAdapterChangeFlagsForAnimations(ViewHolder viewHolder) {
             int flags = viewHolder.mFlags & (FLAG_INVALIDATED | FLAG_REMOVED | FLAG_CHANGED);
             if (viewHolder.isInvalid()) {
                 return FLAG_INVALIDATED;
@@ -12035,8 +12046,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * are finished sometime later.</p>
          *
          * @param listener A listener to be called immediately if no animations are running
-         * or later when currently-running animations have finished. A null listener is
-         * equivalent to calling {@link #isRunning()}.
+         *                 or later when currently-running animations have finished. A null listener is
+         *                 equivalent to calling {@link #isRunning()}.
          * @return true if there are any item animations currently running, false otherwise.
          */
         public final boolean isRunning(ItemAnimatorFinishedListener listener) {
@@ -12065,11 +12076,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * {@link #canReuseUpdatedViewHolder(ViewHolder, List)} to decide based on payloads.
          *
          * @param viewHolder The ViewHolder which represents the changed item's old content.
-         *
          * @return True if RecyclerView should just rebind to the same ViewHolder or false if
-         *         RecyclerView should create a new ViewHolder and pass this ViewHolder to the
-         *         ItemAnimator to animate. Default implementation returns <code>true</code>.
-         *
+         * RecyclerView should create a new ViewHolder and pass this ViewHolder to the
+         * ItemAnimator to animate. Default implementation returns <code>true</code>.
          * @see #canReuseUpdatedViewHolder(ViewHolder, List)
          */
         public boolean canReuseUpdatedViewHolder(@NonNull ViewHolder viewHolder) {
@@ -12087,22 +12096,20 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * {@link #animateChange(ViewHolder, ViewHolder, ItemHolderInfo, ItemHolderInfo)} method.
          *
          * @param viewHolder The ViewHolder which represents the changed item's old content.
-         * @param payloads A non-null list of merged payloads that were sent with change
-         *                 notifications. Can be empty if the adapter is invalidated via
-         *                 {@link RecyclerView.Adapter#notifyDataSetChanged()}. The same list of
-         *                 payloads will be passed into
-         *                 {@link RecyclerView.Adapter#onBindViewHolder(ViewHolder, int, List)}
-         *                 method <b>if</b> this method returns <code>true</code>.
-         *
+         * @param payloads   A non-null list of merged payloads that were sent with change
+         *                   notifications. Can be empty if the adapter is invalidated via
+         *                   {@link RecyclerView.Adapter#notifyDataSetChanged()}. The same list of
+         *                   payloads will be passed into
+         *                   {@link RecyclerView.Adapter#onBindViewHolder(ViewHolder, int, List)}
+         *                   method <b>if</b> this method returns <code>true</code>.
          * @return True if RecyclerView should just rebind to the same ViewHolder or false if
-         *         RecyclerView should create a new ViewHolder and pass this ViewHolder to the
-         *         ItemAnimator to animate. Default implementation calls
-         *         {@link #canReuseUpdatedViewHolder(ViewHolder)}.
-         *
+         * RecyclerView should create a new ViewHolder and pass this ViewHolder to the
+         * ItemAnimator to animate. Default implementation calls
+         * {@link #canReuseUpdatedViewHolder(ViewHolder)}.
          * @see #canReuseUpdatedViewHolder(ViewHolder)
          */
         public boolean canReuseUpdatedViewHolder(@NonNull ViewHolder viewHolder,
-                @NonNull List<Object> payloads) {
+                                                 @NonNull List<Object> payloads) {
             return canReuseUpdatedViewHolder(viewHolder);
         }
 
@@ -12220,7 +12227,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
              * @return This {@link ItemHolderInfo}
              */
             public ItemHolderInfo setFrom(RecyclerView.ViewHolder holder,
-                    @AdapterChanges int flags) {
+                                          @AdapterChanges int flags) {
                 final View view = holder.itemView;
                 this.left = view.getLeft();
                 this.top = view.getTop();
@@ -12256,7 +12263,6 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          *
          * @param i The current iteration.
          * @return The index of the child to draw this iteration.
-         *
          * @see RecyclerView#setChildDrawingOrderCallback(RecyclerView.ChildDrawingOrderCallback)
          */
         int onGetChildDrawingOrder(int childCount, int i);

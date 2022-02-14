@@ -2694,7 +2694,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             // Check for interception.
             final boolean intercepted;
             if (actionMasked == MotionEvent.ACTION_DOWN
-                    || mFirstTouchTarget != null) {
+                    || mFirstTouchTarget != null// 如：move事件，可能需要父控件拦截接管事件
+            ) {
                 final boolean disallowIntercept = (mGroupFlags & FLAG_DISALLOW_INTERCEPT) != 0;
                 if (!disallowIntercept) {
                     intercepted = onInterceptTouchEvent(ev);
@@ -2869,6 +2870,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                             // 通俗讲child捕获down事件之后正在处理事件，这时父控件通过onInterceptTouchEvent方法进行拦截
                             // 也就是说，在child消费事件过程中，给父控件拦截处理事件的机会.
                             // 反过来，当然child也是可以通过requestDisallowInterceptTouchEvent方法让父控件不要拦截事件
+                            // 这是针对的同一序列的事件(down、move、up)
+                            // 所以传统的事件机制是不能处理内嵌滚动的，比如同一序列的事件父控件滚动一半然后子控件滚动一半
                             final boolean cancelChild = resetCancelNextUpFlag(target.child) || intercepted;
 
                             // 如果是 ACTION_MOVE事件，那么直捣黄龙找到 onTouchEvent
